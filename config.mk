@@ -3,8 +3,8 @@
 R ?= .
 
 # compilation configuration: debug/release
-#CONFIG_DEBUG = 1
-CONFIG_RELEASE = 1
+CONFIG_DEBUG = 1
+#CONFIG_RELEASE = 1
 
 # version of the tool
 CONFIG_VERSION = v0.5.2
@@ -44,7 +44,7 @@ CONFIG_MAX_DEFECT_REPETITION = 5
 # maximum verbosity level at which the tool produces output when requested to be
 # verbose with --verb=N; touch these lines only if you know what you are doing
 ifdef CONFIG_DEBUG
-CONFIG_MAX_VERB_LEVEL = 3
+CONFIG_MAX_VERB_LEVEL = 2
 endif
 ifdef CONFIG_RELEASE
 CONFIG_MAX_VERB_LEVEL = 2
