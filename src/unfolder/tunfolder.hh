@@ -8,9 +8,6 @@
 #ifndef SRC_UNFOLDER_TUNFOLDER_HH_
 #define SRC_UNFOLDER_TUNFOLDER_HH_
 
-#ifndef _UNFOLDER_HH_
-#define _UNFOLDER_HH_
-
 #include "stid/executor.hh"
 #include "stid/action_stream.hh"
 
@@ -20,6 +17,7 @@
 
 #include "unfolder/replay.hh"
 #include "unfolder/stream-converter.hh"
+#include "unfolder/disset.hh"
 
 //#include "defectreport.hh" // FIXME: remove
 //#include "redbox-factory.hh" // FIXME: remove
@@ -36,7 +34,8 @@ public:
 
    // ctor and dtor
    Tunfolder (const stid::ExecutorConfig &config);
-   Tunfolder (const Tunfolder &other);
+//   Tunfolder (const Tunfolder &&other);
+//   Tunfolder (const Tunfolder &other);
    virtual ~Tunfolder ();
 
    /// Load the llvm module from the file \p filepath
@@ -65,7 +64,10 @@ public:
 //   Config _add_one_run (const stid::Replay &r);
 
    /// determines if the causal closure of all events in eset is a configuration
-   bool _is_conflict_free(const std::vector<Event *> &sol, const Event *e) const;
+   bool _is_conflict_free (const std::vector<Event *> &sol, const Event *e) const;
+
+   void _set_replay_sleepset (Replay &replay, const Disset &d, const Cut &j);
+//   void _get_por_analysis ();
 
 protected:
 
@@ -83,10 +85,5 @@ protected:
 };
 
 } //end of namespace
-
-//// implementation of inline methods, outside of the namespace
-//#include "unfolder/unfolder.hpp"
-
-#endif
 
 #endif /* SRC_UNFOLDER_TUNFOLDER_HH_ */

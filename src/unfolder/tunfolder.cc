@@ -42,27 +42,41 @@ Tunfolder::Tunfolder (const stid::ExecutorConfig &config) :
    _m (nullptr),
    _config (config)
 {
-   unsigned i;
+   DEBUG ("Tunf: ctor");
+   DEBUG ("Tunf: config: %zu", _config.memsize);
+//   unsigned i;
 
 //   // initialize the start array (this is an invariant expected and maintained
 //   // by stream_to_events)
 //   for (i = 0; i < Unfolding::MAX_PROC; i++)
-//      StreamConverter<T>::start[i] = nullptr;
+//      StreamConverter<T>::start[i] = nullptr; // Phai xem lai phan nay, no co can thiet cho unfolding trong c15 hay ko?
 }
 
-Tunfolder:: Tunfolder (const Tunfolder &other) :
-      _exec (other._exec),
+//Tunfolder:: Tunfolder (const Tunfolder &&other) :
+//      _exec (std::move(other._exec)),
+//      _context (std::move(other._context)), // Load_bitcode se set up context
+//      _path (std::move(other._path)),
+//      _m (std::move(other._m)),
+//      _config (std::move(other._config))
+//{
+//   PRINT ("Tunf.cctor");
+//   DEBUG ("Tunf: config: %zu", _config.memsize);
+//}
+
+//Tunfolder:: Tunfolder (const Tunfolder &other) :
+//      _exec (other._exec),
 //      _context (other._context), // Load_bitcode se set up context
-      _path (other._path),
-      _m (other._m),
-      _config (other._config)
-{
-   PRINT ("Tunfolder.cctor");
-}
+//      _path (other._path),
+//      _m (other._m),
+//      _config (other._config)
+//{
+//   PRINT ("Tunf.cctor");
+//   DEBUG ("Tunf: config: %zu", _config.memsize);
+//}
 
 Tunfolder::~Tunfolder ()
 {
-   DEBUG ("unf.dtor: this %p", this);
+   DEBUG ("tunf.dtor: this %p", this);
    delete _exec;
 }
 
@@ -75,7 +89,9 @@ void Tunfolder::_load_bitcode (std::string &&filepath)
    ASSERT (_path.size() == 0);
    ASSERT (_exec == 0);
    ASSERT (_m == 0);
-   _path = std::move (filepath);
+//   _path = std::move (filepath);
+   _path = filepath;
+   PRINT ("tunf: loadbitcode: path: %s, filepath %s", _path.c_str(), filepath.c_str());
 
    // necessary for the JIT engine; we should move this elsewhere
    static bool init = false;
@@ -88,41 +104,47 @@ void Tunfolder::_load_bitcode (std::string &&filepath)
    }
 
    // parse the .ll file and get a Module out of it
-   PRINT ("dpu: unf: loading bitcode");
+   PRINT (" tunf: loading bitcode");
    std::unique_ptr<llvm::Module> mod (llvm::parseIRFile (_path, err, _context));
    _m = mod.get();
+
+   PRINT ("tunf: load_bitcode: Module _m before: %p", _m);
 
    // if errors found, report and terminate
    if (! mod.get ()) {
       llvm::raw_string_ostream os (errors);
       err.print (_path.c_str(), os);
       os.flush ();
-      DEBUG ("unf: unf: load-bytecode: '%s': %s\n", _path.c_str(), errors.c_str());
+      PRINT ("tunf: load-bytecode: '%s': %s\n", _path.c_str(), errors.c_str());
       throw std::invalid_argument (errors);
    }
+
+   PRINT ("tunf: load_bitcode: Module _m after: %p", _m);
 
    // print external symbols
 //   if (verb_trace) print_external_syms ("dpu: "); // Se xem xet sau
 
-//   PRINT ("dpu: unf: O%u-optimization + jitting...", opts::optlevel); // Cai nay thuoc ve C15
-   DEBUG ("unf: unf: load-bytecode: setting up the bytecode executor...");
+   PRINT ("dpu: unf: O%u-optimization + jitting...", opts::optlevel); // Cai nay thuoc ve C15
+   PRINT ("tunf: load-bytecode: setting up the bytecode executor...");
    try {
       _exec = new stid::Executor (std::move (mod), _config);
    } catch (const std::exception &e) {
-      DEBUG ("unf: unf: load-bytecode: errors preparing the bytecode executor");
-      DEBUG ("unf: unf: load-bytecode: %s", e.what());
+      PRINT ("tunf: load-bytecode: errors preparing the bytecode executor");
+      PRINT ("tunf: load-bytecode: %s", e.what());
       throw e;
    }
-   DEBUG ("unf: unf: load-bytecode: executor successfully created!");
+   PRINT ("tunf: load-bytecode: executor successfully created!");
 
-   if (opts::instpath.size())  // Khong co opts o day? Phai xem xet.
+//   PRINT ("instpath.size: %lu", opts::instpath.size());
+   // Thuc ra cai nay store_bitcode chi can thiet khi minh muon luu lai bitcode (co le de backup)
+   if (opts::instpath.size())  // Opts trong namespace opts in opts.hh
    {
-      TRACE ("dpu: unf: load-bytecode: saving instrumented bytecode to %s",
+      PRINT ("tunf: load-bytecode: saving instrumented bytecode to %s",
          opts::instpath.c_str());
-      _store_bitcode (opts::instpath.c_str());
+      _store_bitcode (opts::instpath.c_str()); // Neu can thi chua bitcode bang function nay
    }
 
-   DEBUG ("dpu: unf: load-bytecode: done!");
+   PRINT ("tunf: load-bytecode: done!");
 }
 
 void Tunfolder::_store_bitcode (const std::string &filename) const
@@ -141,7 +163,7 @@ void Tunfolder::_print_external_syms (const char *prefix)
    std::vector<std::pair<llvm::StringRef,llvm::Type*>> globs;
    size_t len;
 
-   ASSERT (m);
+   ASSERT (_m);
    if (! prefix) prefix = "";
 
    // functions
@@ -183,7 +205,7 @@ void Tunfolder::_print_external_syms (const char *prefix)
 
 void Tunfolder::_set_args (std::vector<const char *> argv)
 {
-   DEBUG ("unf: set-args: |argv| %zu", argv.size());
+   PRINT ("tunf: set-args: |argv| %zu", argv.size());
    _exec->argv = argv;
 }
 
@@ -191,7 +213,7 @@ void Tunfolder::_set_env (std::vector<const char *> env)
 {
    if (env.empty() or env.back() != nullptr)
       env.push_back (nullptr);
-   DEBUG ("unf: set-env: |env| %zu", env.size());
+   PRINT ("tunf: set-env: |env| %zu", env.size());
    _exec->environ = env;
 }
 
@@ -201,10 +223,11 @@ void Tunfolder::_set_default_environment ()
    std::vector<const char *> env;
 
    // make a copy of our environment
-   for (v = environ; *v; ++v) env.push_back (*v);
+   for (v = environ; *v; ++v) env.push_back (*v); // environ la cai gi???
    env.push_back (nullptr);
-   DEBUG ("unf: set-env: |env| %zu", env.size());
+//   PRINT ("unf: set-env: |env| %zu", env.size());
    _exec->environ = env;
+   PRINT ("unf: set-env: |env| %zu", _exec->environ.size());
 }
 
 // Ham nay de lam gi nhi? Tai sao ko có stream_to_events???
@@ -237,6 +260,42 @@ bool Tunfolder::_is_conflict_free (const std::vector<Event *> &sol,
       if (e->in_cfl_with (sol[i])) return false;
    return true;
 }
+
+void  Tunfolder:: _set_replay_sleepset (Replay &replay, const Disset &d, const Cut &j)
+{
+     unsigned tid;
+     PRINT ("tunf: Set replay");
+     _exec->set_replay (replay);
+
+     if (opts::alt_algo == Altalgo::OPTIMAL) return;
+
+     //  // otherwise we set sleeping the thread of every unjustified event in D that
+     //  // is still enabled at J; this assumes that J contains C
+     PRINT ("Set up sleep set: ");
+     _exec->clear_sleepset();
+     for (auto e : d.unjustified)
+     {
+        ASSERT (e->action.type == ActionType::MTXLOCK);
+        if (! j.ex_is_cex (e)) // J nay se xem lay o dau?
+        {
+           tid = replay.pidmap.get(e->pid());
+           TRACE_ ("r%u (#%u) %p; ", tid, e->pid(), (void*) e->action.addr);
+           _exec->add_sleepset (tid, (void*) e->action.addr);
+        }
+     }
+     TRACE ("");
+     PRINT ("tunfolder: finish setting up exec");
+}
+
+// void Tunfolder:: _get_por_analysis ()
+//{
+//   PRINT ("tunf: get_por_analysis: inpath: %s", opts::inpath.c_str());
+//   _load_bitcode (std::string (opts::inpath));
+//
+//   // set values for the argv and environ variables
+//   _set_args (opts::argv);
+//   _set_default_environment();
+//}
 
 } // namespace dpu
 

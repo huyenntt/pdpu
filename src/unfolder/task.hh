@@ -18,20 +18,38 @@
 //#include "stid/executor.hh"
 namespace dpu {
 
-class Task {
+//class Task {
+//public:
+//   Tunfolder unfolder;
+//   Replay rep;
+//   Disset dis;
+////   Trail trail;
+//public:
+////   Task ();
+//   Task (stid::ExecutorConfig &c, Replay &replay, const Disset &d, const Cut &j, Altalgo algo);
+//   Task (const Task &other); //copy constructor
+////   Task (const Task &&other); //move constructor
+////   Task(Replay &rpl, const Disset &dis, const Cut &j, Altalgo algo);
+//
+//   void setup_exec(Replay &rpl, const Disset &dis, const Cut &j, Altalgo algo);
+//   void dump();
+//   void test_run();
+//};
+
+class Task
+{
 public:
-   Tunfolder unfolder;
+   Replay rep;
    Disset dis;
 //   Trail trail;
+
 public:
-   Task ();
-   Task (Disset d, stid::ExecutorConfig c);
-   Task (const Task &other); //copy constructor
-//   Task(Replay &rpl, const Disset &dis, const Cut &j, Altalgo algo);
+//   Task ();
+   Task (Replay rpl, Disset d);
+   Task (const Task &&other);
+//   Task& operator= (Task &&other);
+   void dump();
 
-   void setup_exec(Replay &rpl, const Disset &dis, const Cut &j, Altalgo algo);
 };
-
-
 } // end of namespace
 #endif /* SRC_UNFOLDER_TASK_HH_ */

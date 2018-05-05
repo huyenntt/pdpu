@@ -59,11 +59,15 @@ void Unfolder<T>::load_bitcode (std::string &&filepath)
    llvm::SMDiagnostic err;
    std::string errors;
 
+   PRINT ("c15: load_bitcode: filepath before: %s", filepath.c_str());
+
    ASSERT (filepath.size());
    ASSERT (path.size() == 0);
    ASSERT (exec == 0);
    ASSERT (m == 0);
-   path = std::move (filepath);
+//   path = std::move (filepath);
+   path = filepath;
+   PRINT ("c15: load_bitcode: path: %s filepath after: %s",path.c_str(), filepath.c_str());
 
    // necessary for the JIT engine; we should move this elsewhere
    static bool init = false;
@@ -102,6 +106,8 @@ void Unfolder<T>::load_bitcode (std::string &&filepath)
       throw e;
    }
    DEBUG ("unf: unf: load-bytecode: executor successfully created!");
+
+   PRINT ("instpath.size: %lu", opts::instpath.size());
 
    if (opts::instpath.size())
    {

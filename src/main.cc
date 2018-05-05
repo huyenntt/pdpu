@@ -527,7 +527,7 @@ int main (int argc, char **argv)
    std::unique_ptr<DataRaceAnalysis> dra;
    std::unique_ptr<C15unfolder> unf;
 
-   omp_set_num_threads(2);
+//   omp_set_num_threads(2);
 
    // install signal handler for segfaults
    //signal (SIGSEGV, handler);
@@ -584,14 +584,15 @@ int main (int argc, char **argv)
    {
       // get a POR analysis and configure it to record all replay sequences if
       // we will need later to do data race analysis
-      unf = get_por_analysis ();
+
+      unf = get_por_analysis (); // Neu ko goi ham nay thi set replay co van de cho tunfolder. Tai sao?
       if (opts::analysis == opts::Analysis::DRA) unf->record_replays = true;
 
       INFO ("dpu: environment variables:");
       INFO ("dpu: |environ| = %zu", unf->exec->environ.size());
 
       // build entire unfolding
-      PRINT ("dpu: por: starting POR analysis ...Thread %d", omp_get_thread_num());
+//      PRINT ("dpu: por: starting POR analysis ...Thread %d", omp_get_thread_num());
       unf->explore ();
 
       if (unf->counters.timeout)

@@ -18,6 +18,7 @@
 #include "unfolder/comb.hh"
 #include "unfolder/alt-algorithm.hh"
 #include "unfolder/task.hh"
+#include "unfolder/tunfolder.hh"
 
 #include "defectreport.hh"
 
@@ -89,6 +90,8 @@ public:
 
    /// Initialize and return the parameters of a stid::Executor
    stid::ExecutorConfig prepare_executor_config () const;
+
+   std::unique_ptr<Tunfolder> _get_por_analysis ();
 
    /// runs the system up to completion using the replay, computes CEX of the
    /// resulting configuration, constructs a replay for each one of them and
