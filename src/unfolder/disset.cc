@@ -9,6 +9,7 @@ void Disset:: setflags()
 {
    for (auto &ele : stack)
       ele.e->flags.ind = 1;
+   // Cho nay can phai dung lock de thread co doc quyen lam viec voi event.
 
 }
 

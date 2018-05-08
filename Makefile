@@ -50,7 +50,7 @@ run: dist
 	#$(MAKE) u.svg
 
 run2: dist
-	./dist/bin/dpu benchmarks/basic/cjlu.c -vv --dot u.dot -- p main4
+	./dist/bin/dpu experiments/cav18/bench/dispatcher.c --dot u.dot -- p main4
 	#$(MAKE) u.svg
 	
 # run with callgrind for benchmarks	
