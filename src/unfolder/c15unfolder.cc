@@ -257,7 +257,7 @@ void C15unfolder::explore ()
    start = time (nullptr);
 
    PRINT ("c15: explore: initialize the queue");
-   tasks.emplace (replay, d); // first replay = -1 and empty d
+   tasks.emplace (replay, d, j, t, c); // first task with all empty
 
 //   #pragma omp parallel
 //   {
@@ -265,121 +265,216 @@ void C15unfolder::explore ()
    {
       std::unique_ptr<Tunfolder> unfolder;
       PRINT ("c15::explore: call get_por_analysis for tunfolder");
-      unfolder = _get_por_analysis();
-//      exec->run();
-      unfolder->_exec->run();
 
 //      #pragma omp task shared(unf) firstprivate(tsk)
 //         {
-      PRINT ("Copy task at front to tsk");
+      PRINT ("c15: explore: copy task at front to tsk");
       tsk = new Task(std::move(tasks.front()));
-//            t1 = std::move(tasks.front()); // phai dinh nghia phep move assginment
-            PRINT ("Pop the first task from the queue");
+      PRINT ("c15: explore: pop the first task from the queue");
 //            omp_set_lock(&tsk_lock);
-            tasks.pop();
-            tsk->dump();
+      tasks.pop();
+      tsk->dump();
+      PRINT ("c15::explore:: tasks.size: %lu", tasks.size());
+
+      unfolder = _get_por_analysis();
+      unfolder->_set_replay_sleepset(tsk->rep,tsk->dis,tsk->add);
+      unfolder->_exec->run();
 //            omp_unset_lock(&tsk_lock);
 
-            // each task explores one maximal configuration
-//            explore_one_maxconfig(tsk);
-            //============explore one maximal configuration=====//
-            // if requested, record the replay sequence
+      // if requested, record the replay sequence
 
-//           if (record_replays) replays.push_back (replay);
+      if (record_replays) replays.push_back (replay);
 
-           // explore the leftmost branch starting from our current node
+     // explore the leftmost branch starting from our current node
 //           DEBUG ("c15u: explore: %s: running the system...",
 //                 explore_stat (t, d).c_str());
 
-           // Call guest program to produce a stream of actions
-//           tsk->unfolder._exec->run (); // Segfault o day. Vi sao?
-//           tsk->test_run();
-
-          PRINT ("Call run from steroids");
-
-//           unfolder->_exec->run();
-
            // Get a trace from stream
-           PRINT ("Get trace:");
-           stid::action_streamt s (unfolder->_exec->get_trace ());
-//           stid::action_streamt s (exec->get_trace ());
-           counters.runs++;
-           i = s.get_rt()->trace.num_ths;
-           if (counters.stid_threads < i) counters.stid_threads = i;
-           DEBUG ("c15u: explore: the stream: %s:", explore_stat (t,d).c_str());
+       stid::action_streamt s (unfolder->_exec->get_trace ());
 
+        counters.runs++;
+        i = s.get_rt()->trace.num_ths;
+        if (counters.stid_threads < i) counters.stid_threads = i;
+        PRINT ("c15u: explore: the stream: %s:", explore_stat (tsk->trail,tsk->dis).c_str());
      #ifdef VERB_LEVEL_DEBUG
            if (verb_debug) s.print ();
      #endif
    //        omp_set_lock(&wlock);
-           PRINT ("c15u: explore: Stream to events:"); // Cai ham nay xet sau
-           b = stream_to_events (c, s, &t, &d); // Dung ham stream_to_events cuar C15unfolder
+        PRINT ("c15u: explore: Stream to events:"); // Cai ham nay xet sau
+        b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis); // Phai xu ly voi d,c của task-> DONE!
    //        omp_unset_lock(&wlock);
 
            // b could be false because of SSBs or defects
-           DEBUG ("c15u: explore: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        PRINT ("c15u: explore: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
      #ifdef VERB_LEVEL_TRACE
            if (verb_trace)
-              t.dump2 (fmt ("c15u: explore: %s: ", explore_stat(t,d).c_str()).c_str());
+              t.dump2 (fmt ("c15u: explore: %s: ", explore_stat(tsk->trail,tsk->dis).c_str()).c_str());
            if (verb_debug) pidpool.dump ();
-           if (verb_debug) c.dump ();
-           if (verb_debug) d.dump ();
+           if (verb_debug) tsk->conf.dump ();
+           if (verb_debug) tsk->dis.dump ();
      #endif
 
            // add conflicting extensions
-           DEBUG ("c15: explore: compute cex");
-           compute_cex (c, &e);  // Truy cap den unfolding cuar C15unfolder
-           counters.avg_max_trail_size += t.size();
+        PRINT ("c15: explore: compute cex");
+        compute_cex (tsk->conf, &e);  // Truy cap den unfolding cuar C15unfolder
+        counters.avg_max_trail_size += tsk->trail.size();
+
+        // Set flags.ind for all events in D
+        tsk->dis.setflags();
 
            // backtrack until we find some right subtree to explore
-           DEBUG ("");
-           while (t.size())
-           {
+        DEBUG ("");
+        PRINT("c15: explore: backtrach the trail");
+
+        while (tsk->trail.size())
+        {
+           e = tsk->trail.pop ();
               // pop last event out of the trail/config; indicate so to the disset
-              e = t.pop ();
-              DEBUG ("c15u: explore: %s: popping: i %2zu ncs %u %s",
-                    explore_stat(t,d).c_str(), t.size(), t.nr_context_switches(),
-                    e->str().c_str());
-              c.unfire (e);
-              d.trail_pop (t.size ());
+           PRINT ("c15u: explore: %s: popping: i %2zu ncs %u %s",
+                     explore_stat(tsk->trail,tsk->dis).c_str(), tsk->trail.size(), tsk->trail.nr_context_switches(),
+                     e->str().c_str());
 
-              // skip searching for alternatives if we exceed the number of allowed
-              // context switches
-              if (t.nr_context_switches() >= max_context_switches)
-                 DEBUG ("c15u: explore: %s: continue", explore_stat(t,d).c_str());
-              if (t.nr_context_switches() >= max_context_switches) continue;
+           tsk->conf.unfire (e);
+           tsk->dis.dump();
+           tsk->dis.trail_pop (tsk->trail.size ()); // Ko hieu y nghia cua viec nay lam.
 
-              // check for alternatives
-              counters.alt.calls++;
-              if (! might_find_alternative (c, d, e)) continue;
-              d.add (e, t.size());
+           // skip searching for alternatives if we exceed the number of allowed
+           // context switches
+           if (tsk->trail.nr_context_switches() >= max_context_switches)
+              PRINT ("c15u: explore: %s: continue", explore_stat(tsk->trail,tsk->dis).c_str());
+           if (tsk->trail.nr_context_switches() >= max_context_switches) continue;
 
-              if (find_alternative (t, c, d, j))
-                 {
-                    // Here we create a new task to explore new branch with the alternative found
-                    replay.build_from (t, c, j);
-//                    ntsk = new Task(conf, replay, d, j, altalgo);
-//                  ntsk->setup_exec(replay, j, d); // all necessary parameters for unfolder
-//                    ntsk = new Task (replay, d);
-//                    tasks.push(*ntsk);
-                    tasks.emplace (replay,d);
-                 }
-              d.unadd ();
+           // check for alternatives
+           counters.alt.calls++;
+           if (! might_find_alternative (tsk->conf, tsk->dis, e))
+           {
+              PRINT ("c15: epxplore: Khong co kha nang co alternative");
+                 continue;
            }
 
+           PRINT ("c15: explore: trail.size %zu", tsk->trail.size());
+           tsk->dis.add (e, tsk->trail.size()); // Phan khoi tao tsk->dis co van de -> Done with cctor!
+
+           if (find_alternative (tsk->trail, tsk->conf, tsk->dis, j))
+           {
+                 // Here we create a new task to explore new branch with the alternative found
+                 PRINT ("An alternative found");
+                 replay.build_from (tsk->trail, tsk->conf, j);
+                 // Phai set sleep set va replay moi cho executor o day
+                 tsk->dis.dump();
+                 tasks.emplace (replay, tsk->dis, j, tsk->trail, tsk->conf);
+                 tasks.back().dump(); // Den cho nay ind = -1
+            } // end of if
+
+            tsk->dis.unadd (); // Cho nay unadd nen no lai bi tro ve 0 roi. Lam sao day.
+          } // end of while
+
+          if (tsk->trail.empty()) PRINT ("c15: explore: empty trail===Finish backtracking======");
            // if we exhausted the time cap, we stop
             if (counters.runs % 10 == 0 and timeout)
                if (time(nullptr) - start > timeout)
                   { counters.timeout = true; break; }
-
-           // if the trail is now empty, we finished; otherwise we compute a replay
-                 // and pass it to steroids
-   //              if (! t.size ()) break;
-
-            //==================================================//
-//         }
       }
 //   }
+
+   // statistics
+   counters.ssbs = tsk->dis.ssb_count;
+   counters.maxconfs = counters.runs - counters.ssbs;
+   counters.avg_max_trail_size /= counters.runs;
+   PRINT ("c15u: explore: done!");
+   ASSERT (counters.ssbs == 0 or altalgo != Altalgo::OPTIMAL);
+}
+
+void C15unfolder::explore_origin ()
+{
+   bool b;
+   Trail t;
+   Disset d;
+   Config c (Unfolding::MAX_PROC);
+   Cut j (Unfolding::MAX_PROC);
+   Replay replay (u);
+   Event *e = nullptr;
+   int i = 0;
+   time_t start;
+
+   // initialize the defect report now that all settings for this verification
+   // exploration are fixed
+   report_init ();
+   start = time (nullptr);
+
+   int a = 1;
+   while (a)
+   {
+      // if requested, record the replay sequence
+      if (record_replays) replays.push_back (replay);
+
+      // explore the leftmost branch starting from our current node
+      DEBUG ("c15u: explore: %s: running the system...",
+            explore_stat (t, d).c_str());
+      exec->run ();
+      stid::action_streamt s (exec->get_trace ());
+      counters.runs++;
+      i = s.get_rt()->trace.num_ths;
+      if (counters.stid_threads < i) counters.stid_threads = i;
+      DEBUG ("c15u: explore: the stream: %s:", explore_stat (t,d).c_str());
+#ifdef VERB_LEVEL_DEBUG
+      if (verb_debug) s.print ();
+#endif
+      b = stream_to_events (c, s, &t, &d);
+      // b could be false because of SSBs or defects
+      DEBUG ("c15u: explore: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+#ifdef VERB_LEVEL_TRACE
+      if (verb_trace)
+         t.dump2 (fmt ("c15u: explore: %s: ", explore_stat(t,d).c_str()).c_str());
+      if (verb_debug) pidpool.dump ();
+      if (verb_debug) c.dump ();
+      if (verb_debug) d.dump ();
+#endif
+
+      // add conflicting extensions
+      compute_cex (c, &e);
+      counters.avg_max_trail_size += t.size();
+
+      // backtrack until we find some right subtree to explore
+      DEBUG ("");
+      while (t.size())
+      {
+         // pop last event out of the trail/config; indicate so to the disset
+         e = t.pop ();
+         PRINT ("c15u: explore: %s: popping: i %2zu ncs %u %s",
+               explore_stat(t,d).c_str(), t.size(), t.nr_context_switches(),
+               e->str().c_str());
+         c.unfire (e);
+         d.trail_pop (t.size ());
+
+         // skip searching for alternatives if we exceed the number of allowed
+         // context switches
+         if (t.nr_context_switches() >= max_context_switches)
+            PRINT ("c15u: explore: %s: continue", explore_stat(t,d).c_str());
+         if (t.nr_context_switches() >= max_context_switches) continue;
+
+         // check for alternatives
+         counters.alt.calls++;
+         if (! might_find_alternative (c, d, e)) continue;
+         d.add (e, t.size());
+         if (find_alternative (t, c, d, j)) break;
+         d.unadd ();
+      }
+
+      // if we exhausted the time cap, we stop
+      if (counters.runs % 10 == 0 and timeout)
+         if (time(nullptr) - start > timeout)
+            { counters.timeout = true; break; }
+
+      // if the trail is now empty, we finished; otherwise we compute a replay
+      // and pass it to steroids
+      if (! t.size ()) break;
+      replay.build_from (t, c, j);
+      set_replay_and_sleepset (replay, j, d);
+
+      // explore only one execution
+//      a = 0;
+   }
 
    // statistics
    counters.ssbs = d.ssb_count;
@@ -388,6 +483,7 @@ void C15unfolder::explore ()
    DEBUG ("c15u: explore: done!");
    ASSERT (counters.ssbs == 0 or altalgo != Altalgo::OPTIMAL);
 }
+
 
 void C15unfolder::set_replay_and_sleepset (Replay &replay, const Cut &j,
       const Disset &d)
@@ -430,7 +526,7 @@ void C15unfolder::compute_cex_lock (Event *e, Event **head)
 
    Event *ep, *em, *ee;
 
-   // DEBUG ("c15u: cex-lock: starting from %s", e->str().c_str());
+   PRINT ("c15u: cex-lock: starting from %s", e->str().c_str());
    ASSERT (e)
    ASSERT (e->action.type == ActionType::MTXLOCK);
 
@@ -455,10 +551,10 @@ void C15unfolder::compute_cex_lock (Event *e, Event **head)
       ASSERT (!em or em->action.type == ActionType::MTXUNLK);
 
       // 7. (action, ep, em) is a possibly new event
-      omp_unset_lock(&wlock);
+//      omp_unset_lock(&wlock);
          ee = u.event (e->action, ep, em);
-      omp_unset_lock(&wlock);
-      DEBUG ("c15u: cex-lock:  new cex: %s", ee->str().c_str());
+//      omp_unset_lock(&wlock);
+      PRINT ("c15u: cex-lock:  new cex: %s", ee->str().c_str());
 
       // we add it to the linked-list
       ee->next = *head; // next is also used in cut_to_replay
@@ -470,12 +566,13 @@ void C15unfolder::compute_cex (Config &c, Event **head)
 {
    Event *e;
 
-   //DEBUG ("c15u: cex: c %p *head %p |mm| %d", &c, *head, c.mutexmax.size());
+   PRINT ("c15u: cex: c %p *head %p |mm| %lu", &c, *head, c.mutexmax.size());
 
    for (auto const & max : c.mutexmax)
    {
       // skip events that are not locks or unlocks
       e = max.second;
+      PRINT ("Event: %s", e->str().c_str());
       ASSERT (e);
       if (e->action.type != ActionType::MTXUNLK and
             e->action.type != ActionType::MTXLOCK) continue;

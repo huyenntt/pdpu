@@ -15,11 +15,14 @@ namespace dpu{
 //   PRINT ("Task.ctor()");
 //}
 
-Task:: Task(Replay rpl, Disset d) :
+Task:: Task(Replay rpl, Disset d, Cut j, Trail t, Config c) :
       rep (rpl),
-      dis (d)
+      dis (d),
+      add (j),
+      trail (t),
+      conf (c)
 {
-   PRINT ("Task.ctor(reply,dis)");
+   PRINT ("Task.ctor(replay,dis,add, trail)");
 }
 
 //Task:: Task (const Task &&other) :
@@ -31,9 +34,12 @@ Task:: Task(Replay rpl, Disset d) :
 
 Task:: Task (const Task &&other) :
       rep (std::move(other.rep)),
-      dis (std::move(other.dis))
+      dis (std::move(other.dis)),
+      add (std::move(other.add)),
+      trail (std::move(other.trail)),
+      conf (std::move(other.conf))
 {
-
+   PRINT ("Task.mctor:Done");
 }
 
 // move operator
@@ -48,6 +54,9 @@ void Task:: dump()
    PRINT ("Task: Dumping task:");
    PRINT ("Task: Replay: %s", rep.str().c_str()); // Chua ro in replay ra nhu the nao
    dis.dump();
+   add.dump();
+   trail.dump();
+   conf.dump();
 }
 
 ////Task:: Task() :

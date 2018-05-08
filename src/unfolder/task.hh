@@ -41,11 +41,13 @@ class Task
 public:
    Replay rep;
    Disset dis;
-//   Trail trail;
+   Cut add;
+   Trail trail;
+   Config conf;
 
 public:
 //   Task ();
-   Task (Replay rpl, Disset d);
+   Task (Replay rpl, Disset d, Cut add, Trail t, Config c);
    Task (const Task &&other);
 //   Task& operator= (Task &&other);
    void dump();

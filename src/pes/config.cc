@@ -5,8 +5,10 @@ namespace dpu {
 
 void Config::dump () const
 {
+   PRINT ("Conf: dump: %p", this);
    PRINT ("== begin config =="); 
    __dump_cut ();
+   PRINT ("conf: dump: mutex");
    __dump_mutexes ();
    PRINT ("== end config =="); 
 }

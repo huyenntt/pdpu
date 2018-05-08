@@ -5,6 +5,13 @@
 namespace dpu
 {
 
+void Disset:: setflags()
+{
+   for (auto &ele : stack)
+      ele.e->flags.ind = 1;
+
+}
+
 void Disset::dump () const
 {
    const Elem *e;
@@ -24,6 +31,9 @@ void Disset::dump () const
    {
       PRINT (" idx %d dis %d %s", e->idx, e->disabler, e->e->str().c_str());
    }
+
+   if (!stack.empty())
+      PRINT ("stack.back(): .e: %s, .ind: %d", stack.back().e->str().c_str(), stack.back().e->flags.ind);
 
    PRINT ("== end disset =="); 
 }

@@ -104,11 +104,8 @@ void Tunfolder::_load_bitcode (std::string &&filepath)
    }
 
    // parse the .ll file and get a Module out of it
-   PRINT (" tunf: loading bitcode");
    std::unique_ptr<llvm::Module> mod (llvm::parseIRFile (_path, err, _context));
    _m = mod.get();
-
-   PRINT ("tunf: load_bitcode: Module _m before: %p", _m);
 
    // if errors found, report and terminate
    if (! mod.get ()) {
@@ -119,12 +116,10 @@ void Tunfolder::_load_bitcode (std::string &&filepath)
       throw std::invalid_argument (errors);
    }
 
-   PRINT ("tunf: load_bitcode: Module _m after: %p", _m);
-
    // print external symbols
 //   if (verb_trace) print_external_syms ("dpu: "); // Se xem xet sau
 
-   PRINT ("dpu: unf: O%u-optimization + jitting...", opts::optlevel); // Cai nay thuoc ve C15
+//   PRINT ("dpu: unf: O%u-optimization + jitting...", opts::optlevel); // Cai nay thuoc ve C15
    PRINT ("tunf: load-bytecode: setting up the bytecode executor...");
    try {
       _exec = new stid::Executor (std::move (mod), _config);
@@ -144,7 +139,7 @@ void Tunfolder::_load_bitcode (std::string &&filepath)
       _store_bitcode (opts::instpath.c_str()); // Neu can thi chua bitcode bang function nay
    }
 
-   PRINT ("tunf: load-bytecode: done!");
+   PRINT ("tunf: load-bytecode: Done!");
 }
 
 void Tunfolder::_store_bitcode (const std::string &filename) const
@@ -227,7 +222,7 @@ void Tunfolder::_set_default_environment ()
    env.push_back (nullptr);
 //   PRINT ("unf: set-env: |env| %zu", env.size());
    _exec->environ = env;
-   PRINT ("unf: set-env: |env| %zu", _exec->environ.size());
+   PRINT ("tunf: set-env: |env| %zu", _exec->environ.size());
 }
 
 // Ham nay de lam gi nhi? Tai sao ko có stream_to_events???
@@ -264,14 +259,14 @@ bool Tunfolder::_is_conflict_free (const std::vector<Event *> &sol,
 void  Tunfolder:: _set_replay_sleepset (Replay &replay, const Disset &d, const Cut &j)
 {
      unsigned tid;
-     PRINT ("tunf: Set replay");
+     PRINT ("tunf: Set_replay_sleepset: set replay");
      _exec->set_replay (replay);
 
      if (opts::alt_algo == Altalgo::OPTIMAL) return;
 
      //  // otherwise we set sleeping the thread of every unjustified event in D that
      //  // is still enabled at J; this assumes that J contains C
-     PRINT ("Set up sleep set: ");
+     PRINT ("tunf: Set replay and sleep set: set SS ");
      _exec->clear_sleepset();
      for (auto e : d.unjustified)
      {
@@ -284,7 +279,7 @@ void  Tunfolder:: _set_replay_sleepset (Replay &replay, const Disset &d, const C
         }
      }
      TRACE ("");
-     PRINT ("tunfolder: finish setting up exec");
+     PRINT ("tunf: set_replay_sleepset: Done");
 }
 
 // void Tunfolder:: _get_por_analysis ()

@@ -104,6 +104,8 @@ public:
    /// the CONCUR'15 POR algorithm
    void explore ();
 
+   void explore_origin ();
+
    /// compute the conflicting extensions of c and add them to a singly-linked
    /// list pointed by head
    void compute_cex (Config &c, Event **head);
