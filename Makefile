@@ -47,23 +47,23 @@ $(STIDROOT)/rt/rt.bc :
 
 run: dist
 	./dist/bin/dpu benchmarks/basic/cjlu.c -vv --dot u.dot -- p main3
-	#$(MAKE) u.svg
+	$(MAKE) u.pdf
 
 run2: dist
-	./dist/bin/dpu experiments/cav18/bench/dispatcher.c --dot u.dot -- p main4
+	./dist/bin/dpu experiments/cav18/bench/multiprodcon.c --dot u.dot -- p main4
 	#$(MAKE) u.svg
 	
 # run with callgrind for benchmarks	
 rundisp: dist
-	./dist/bin/dpu experiments/cav18/bench/dispatcher.c -k0 --callgrind
+	./dist/bin/dpu experiments/cav18/bench/dispatcher.c -k0
 runmpat: dist
-	 ./dist/bin/dpu experiments/cav18/bench/mpat.c -k0 --callgrind
+	 ./dist/bin/dpu experiments/cav18/bench/mpat.c -k0
 runmpc: dist
-	./dist/bin/dpu experiments/cav18/bench/multiprodcon.c -k0 --callgrind
+	./dist/bin/dpu experiments/cav18/bench/multiprodcon.c -k0
 runpi: dist
-	./dist/bin/dpu experiments/cav18/bench/pi/pth_pi_mutex.c -k0 --callgrind
+	./dist/bin/dpu experiments/cav18/bench/pi/pth_pi_mutex.c -k0
 runpol: dist
-	./dist/bin/dpu experiments/cav18/bench/poke.c -k0 --callgrind
+	./dist/bin/dpu experiments/cav18/bench/poke.c -k0
 
 tags :
 	ctags -R --c++-kinds=+p --fields=+K --extra=+q src/ tests/unit/ config.h $(shell llvm-config-$(CONFIG_LLVM_VER) --includedir)
@@ -126,7 +126,7 @@ DOTS=$(wildcard dot/*.dot)
 PDFS=$(DOTS:.dot=.pdf)
 SVGS=$(DOTS:.dot=.svg)
 
-dot: $(SVGS)
+dot: $(PDFS)
 
 o open :
 	(ls dot/*.svg | head -n1 | xargs eog) &
