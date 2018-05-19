@@ -139,6 +139,7 @@ Event *Unfolding::event (Action ac, Event *p, Event *m)
    }
 
    // if the event already exist, we return it
+   PRINT ("unf: event: add event lock, unlock");
    e = find2 (&ac, p, m);
    if (e) return e;
 

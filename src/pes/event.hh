@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <omp.h>
 
 #include "pes/action.hh"
 #include "pes/cfltree.hh"
@@ -34,6 +35,10 @@ public:
    /// THJOIN(tid), MTXLOCK(addr), MTXUNLK(addr), two predecessors
    /// (process, memory/exit)
    inline Event (Action ac, Event *m, bool boxfirst);
+
+   ~Event ();
+
+   omp_lock_t elock;
 
    struct {
       /// True iff this event is the first one in its own Eventbox

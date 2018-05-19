@@ -6,6 +6,11 @@
 
 namespace dpu {
 
+Event:: ~Event ()
+{
+   omp_destroy_lock(&elock);
+}
+
 Eventbox *Event::box_below () const
 {
    return ((Eventbox *) this) - 1;

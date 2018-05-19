@@ -179,14 +179,18 @@ std::string Cut::str () const
    return s;
 }
 
-void Cut::colorize (unsigned color)
+void Cut::colorize (unsigned color) // touch unfolding
 {
    unsigned i;
    Event *e;
 
    for (i = 0; i < nrp; i++)
       for (e = max[i]; e; e = e->pre_proc())
+      {
+         // set event's lock here
          e->color = color;
+         // unset lock here
+      }
 }
 
 bool Cut::ex_is_cex (const Event *e) const
