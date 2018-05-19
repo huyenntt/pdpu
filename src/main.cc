@@ -527,8 +527,6 @@ int main (int argc, char **argv)
    std::unique_ptr<DataRaceAnalysis> dra;
    std::unique_ptr<C15unfolder> unf;
 
-//   omp_set_num_threads(2);
-
    // install signal handler for segfaults
    //signal (SIGSEGV, handler);
 
@@ -593,7 +591,8 @@ int main (int argc, char **argv)
 
       // build entire unfolding
 //      PRINT ("dpu: por: starting POR analysis ...Thread %d", omp_get_thread_num());
-      unf->explore ();
+      unf->explore_para ();
+//      unf->explore_seq ();
 //      unf->explore_origin();
 
       if (unf->counters.timeout)
