@@ -46,7 +46,7 @@
 #endif
 
 #ifndef ITERS
-#define ITERS 40000
+#define ITERS 1000
 #endif
 
 long thread_count;
