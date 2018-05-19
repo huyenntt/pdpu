@@ -15,9 +15,11 @@
 #include "pes/config.hh"
 #include "pes/unfolding.hh"
 
+#include "unfolder/alt-algorithm.hh"
 #include "unfolder/replay.hh"
 #include "unfolder/stream-converter.hh"
 #include "unfolder/disset.hh"
+#include "unfolder/comb.hh"
 
 //#include "defectreport.hh" // FIXME: remove
 //#include "redbox-factory.hh" // FIXME: remove
@@ -33,7 +35,7 @@ public:
    stid::Executor *_exec;
 
    // ctor and dtor
-   Tunfolder (const stid::ExecutorConfig &config);
+   Tunfolder (const stid::ExecutorConfig &config, Altalgo a, unsigned kbound, unsigned maxcts); // Altalgo a, unsigned kbound, unsigned maxcts
 //   Tunfolder (const Tunfolder &&other);
 //   Tunfolder (const Tunfolder &other);
    virtual ~Tunfolder ();
@@ -67,7 +69,29 @@ public:
    bool _is_conflict_free (const std::vector<Event *> &sol, const Event *e) const;
 
    void _set_replay_sleepset (Replay &replay, const Disset &d, const Cut &j);
-//   void _get_por_analysis ();
+
+   /// recursive function to explore all combinations in the comb of
+   /// alternatives
+   bool enumerate_combination (unsigned i, std::vector<Event*> &sol);
+
+   /// returns false only if no alternative to D \cup {e} after C exists
+   bool might_find_alternative (Config &c, Disset &d, Event *e);
+
+   /// finds one alternative for C after D, and stores it in J; we select from
+   /// here the specific algorithm that we call
+   bool find_alternative (const Trail &t, Config &c, const Disset &d, Cut &j, Unfolding &u);
+
+   /// Implementation 1: complete, unoptimal, searches conflict to only last event
+   bool find_alternative_only_last (const Config &c, const Disset &d, Cut &j);
+
+   /// Implementation 2: complete, optimal/unoptimal, based on the comb
+   bool find_alternative_kpartial (const Config &c, const Disset &d, Cut &j);
+
+   /// Implementation 2: complete, unoptimal
+   bool find_alternative_sdpor (Config &c, const Disset &d, Cut &j, Unfolding &u);
+
+   /// Returns debugging output suitable to be printed
+   std::string _explore_stat (const Trail &t, const Disset &d) const;
 
 protected:
 
@@ -82,6 +106,21 @@ protected:
 
    /// Configuration for the dynamic executor in Steroids
    stid::ExecutorConfig _config;
+
+   /// Algorithm to compute alternatives
+   Altalgo alt_algo;
+
+   /// When computing k-partial alternatives, the value of k
+   unsigned kpartial_bound;
+
+private:
+   /// The comb data structure
+   Comb comb;
+
+   /// Maximum number of context switches present in the trail for the
+   /// exploration to allow computing alternatives for an event extracted from
+   /// the trail immediately before.
+   unsigned max_context_switches; // De xem cho nay the nao -> FIXME
 };
 
 } //end of namespace

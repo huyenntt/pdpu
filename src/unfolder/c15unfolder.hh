@@ -15,7 +15,7 @@
 #include "unfolder/pidpool.hh"
 #include "unfolder/replay.hh"
 #include "unfolder/unfolder.hh"
-#include "unfolder/comb.hh"
+//#include "unfolder/comb.hh"
 #include "unfolder/alt-algorithm.hh"
 #include "unfolder/task.hh"
 #include "unfolder/tunfolder.hh"
@@ -23,6 +23,7 @@
 #include "defectreport.hh"
 
 #include <omp.h>
+#include <queue>
 
 namespace dpu
 {
@@ -72,11 +73,11 @@ protected:
    /// When computing k-partial alternatives, the value of k
    unsigned kpartial_bound;
 
-   omp_lock_t wlock;
+   omp_lock_t ulock;
 
 private:
    /// The comb data structure
-   Comb comb;
+//   Comb comb;
 
    /// Maximum number of context switches present in the trail for the
    /// exploration to allow computing alternatives for an event extracted from
@@ -99,41 +100,45 @@ public:
    void add_multiple_runs (const Replay &r);
 
    // explores only one maximal configuration provided by tsk
-   void explore_one_maxconfig(Task &tsk);
+   void explore_one_maxconfig(Task *tsk, std::queue<Task> &tasks);
+   void explore_one_maxconfig(Task *tsk);
 
    /// the CONCUR'15 POR algorithm
-   void explore ();
+   void explore_para (); // without queue of tasks
+   void explore_para1 (); // with queue of tasks
 
-   void explore_origin ();
+   void explore_seq();
 
-   /// compute the conflicting extensions of c and add them to a singly-linked
-   /// list pointed by head
+//   void explore_origin ();
+
+//   /// compute the conflicting extensions of c and add them to a singly-linked
+//   /// list pointed by head
    void compute_cex (Config &c, Event **head);
-
-   /// recursive function to explore all combinations in the comb of
-   /// alternatives
-   bool enumerate_combination (unsigned i, std::vector<Event*> &sol);
-
-   /// returns false only if no alternative to D \cup {e} after C exists
-   bool might_find_alternative (Config &c, Disset &d, Event *e);
-
-   /// finds one alternative for C after D, and stores it in J; we select from
-   /// here the specific algorithm that we call
-   bool find_alternative (const Trail &t, Config &c, const Disset &d, Cut &j);
-
-   /// Implementation 1: complete, unoptimal, searches conflict to only last event
-   bool find_alternative_only_last (const Config &c, const Disset &d, Cut &j);
-
-   /// Implementation 2: complete, optimal/unoptimal, based on the comb
-   bool find_alternative_kpartial (const Config &c, const Disset &d, Cut &j);
-
-   /// Implementation 2: complete, unoptimal
-   bool find_alternative_sdpor (Config &c, const Disset &d, Cut &j);
-
-   /// FIXME
-   void set_replay_and_sleepset (Replay &replay, const Cut &j, const Disset &d);
-
-   /// Computes conflicting extensions associated to event e
+//
+//   /// recursive function to explore all combinations in the comb of
+//   /// alternatives
+//   bool enumerate_combination (unsigned i, std::vector<Event*> &sol);
+//
+//   /// returns false only if no alternative to D \cup {e} after C exists
+//   bool might_find_alternative (Config &c, Disset &d, Event *e);
+//
+//   /// finds one alternative for C after D, and stores it in J; we select from
+//   /// here the specific algorithm that we call
+//   bool find_alternative (const Trail &t, Config &c, const Disset &d, Cut &j);
+//
+//   /// Implementation 1: complete, unoptimal, searches conflict to only last event
+//   bool find_alternative_only_last (const Config &c, const Disset &d, Cut &j);
+//
+//   /// Implementation 2: complete, optimal/unoptimal, based on the comb
+//   bool find_alternative_kpartial (const Config &c, const Disset &d, Cut &j);
+//
+//   /// Implementation 2: complete, unoptimal
+//   bool find_alternative_sdpor (Config &c, const Disset &d, Cut &j);
+//
+//   /// FIXME
+//   void set_replay_and_sleepset (Replay &replay, const Cut &j, const Disset &d);
+//
+//   /// Computes conflicting extensions associated to event e
    void compute_cex_lock (Event *e, Event **head);
 
 protected:

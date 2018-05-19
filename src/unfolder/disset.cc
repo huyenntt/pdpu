@@ -5,12 +5,35 @@
 namespace dpu
 {
 
-void Disset:: setflags()
+void Disset:: set_flags()
 {
-   for (auto &ele : stack)
-      ele.e->flags.ind = 1;
-   // Cho nay can phai dung lock de thread co doc quyen lam viec voi event.
+   PRINT ("disset: set_flags: ...");
+   if (!stack.empty())
+   {
+      omp_set_lock(&stack.back().e->elock);
+         stack.back().e->flags.ind = 1;
+      omp_unset_lock(&stack.back().e->elock);
+   }
+//   for (auto &ele : stack)
+//   {
+//      omp_set_lock(&ele.e->elock); // lock event in disset until we finish the computation of alternative
+//      ele.e->flags.ind = 1;
+//   }
+   // Only last event added to D needs to be set flags.ind = 1 as it will be changed back later to
+//   if (unjust)
+//      unjust->e->flags.ind = 1;
+}
 
+void Disset:: unset_flags()
+{
+//   PRINT ("disset: unset_flags: ...");
+//   for (auto &ele : stack)
+//   {
+//        ele.e->flags.ind = 0;
+//        omp_unset_lock(&ele.e->elock);
+//   }
+//   if (unjust)
+//      unjust->e->flags.ind = 0;
 }
 
 void Disset::dump () const
@@ -24,17 +47,14 @@ void Disset::dump () const
    PRINT ("Unjustified:");
    for (e = unjust; e; e = e->next)
    {
-      PRINT  (" idx %d %s", e->idx, e->e->str().c_str());
+      PRINT  (" ele %p idx %d %s", (void*) e, e->idx, e->e->str().c_str());
    }
 
    PRINT ("Justified (top-down):");
    for (e = just; e; e = e->next)
    {
-      PRINT (" idx %d dis %d %s", e->idx, e->disabler, e->e->str().c_str());
+      PRINT (" ele %p idx %d dis %d %s", (void*) e, e->idx, e->disabler, e->e->str().c_str());
    }
-
-   if (!stack.empty())
-      PRINT ("stack.back(): .e: %s, .ind: %d", stack.back().e->str().c_str(), stack.back().e->flags.ind);
 
    PRINT ("== end disset =="); 
 }

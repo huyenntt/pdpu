@@ -15,15 +15,25 @@ namespace dpu{
 //   PRINT ("Task.ctor()");
 //}
 
-Task:: Task(Replay rpl, Disset d, Cut j, Trail t, Config c) :
-      rep (rpl),
+//Task:: Task(Replay rpl, const Disset &d, const Cut &j, const Trail &t, const Config &c) :
+//      rep (rpl),
+//      dis (d),
+//      add (j),
+//      trail (t),
+//      conf (c)
+//{
+//   PRINT ("task: ctor: (replay,dis,add, trail)");
+//}
+
+Task:: Task(const Disset &d, const Cut &j, const Trail &t, const Config &c) :
       dis (d),
       add (j),
       trail (t),
       conf (c)
 {
-   PRINT ("Task.ctor(replay,dis,add, trail)");
+   PRINT ("task: ctor: (replay,dis,add, trail)");
 }
+
 
 //Task:: Task (const Task &&other) :
 //      rep (std::move(other.rep)),
@@ -33,13 +43,14 @@ Task:: Task(Replay rpl, Disset d, Cut j, Trail t, Config c) :
 //}
 
 Task:: Task (const Task &&other) :
-      rep (std::move(other.rep)),
+//      rep (std::move(other.rep)),
       dis (std::move(other.dis)),
       add (std::move(other.add)),
       trail (std::move(other.trail)),
       conf (std::move(other.conf))
 {
    PRINT ("Task.mctor:Done");
+   add.dump();
 }
 
 // move operator
@@ -52,10 +63,15 @@ Task:: Task (const Task &&other) :
 void Task:: dump()
 {
    PRINT ("Task: Dumping task:");
-   PRINT ("Task: Replay: %s", rep.str().c_str()); // Chua ro in replay ra nhu the nao
+//   PRINT ("Task: Replay: %s", rep.str().c_str()); // Chua ro in replay ra nhu the nao
+//   PRINT ("tasks: dump: replay: %s", rep.str().c_str());
+   PRINT ("task: dump: dis");
    dis.dump();
+   PRINT ("task: dump: add");
    add.dump();
+   PRINT ("task: dump: trail");
    trail.dump();
+   PRINT ("task: dump: conf");
    conf.dump();
 }
 

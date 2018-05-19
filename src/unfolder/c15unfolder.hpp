@@ -50,6 +50,8 @@ bool C15unfolder::stream_match_trail
    count = 0;
    pid = 0;
 
+//   PRINT ("c15:: Stream match trail");
+
    // match trail events as long as the trail AND the stream contain events
    for (i = 0; i < t.size() - 1 and it != end; ++it)
    {
@@ -278,7 +280,9 @@ bool C15unfolder::stream_to_events
       case RT_MTXLOCK :
          e->flags.crb = 1;
          ee = c.mutex_max (it.addr());
+         PRINT ("ee %p, it.addr: %p", ee, it.addr());
          e = u.event ({.type = ActionType::MTXLOCK, .addr = it.addr()}, e, ee);
+
          if (d and ! d->trail_push (e, t->size())) return false;
          if (t) t->push(e);
          c.fire (e);

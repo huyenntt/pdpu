@@ -97,6 +97,7 @@ public:
    /// constructor
    inline Disset ();
    inline Disset (const Disset &other);
+   inline Disset (const Disset &&other);
 
    /// add an event to D, given the event and the index it occupied the trail;
    /// the event will be removed from D whenever either we pop out of the trail
@@ -122,7 +123,8 @@ public:
    /// configuration denoted by the cut c
    inline bool intersects_with (const Cut &c) const;
 
-   void setflags();
+   void set_flags();
+   void unset_flags();
 
    /// dumps debug information to stdout
    void dump () const;
