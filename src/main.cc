@@ -79,12 +79,19 @@ void print_tree_stats (C15unfolder &unf)
          if (e.action.type == ActionType::MTXLOCK
                or e.action.type == ActionType::MTXUNLK)
          {
-            decltype(ad)::iterator it1 = ad.find (e.action.addr);
-            decltype(ab)::iterator it2 = ab.find (e.action.addr);
+//            decltype(ad)::iterator it1 = ad.find (e.action.addr);
+//            decltype(ab)::iterator it2 = ab.find (e.action.addr);
+//            if (it1 == ad.end ())
+//            {
+//               it1 = ad.emplace(std::make_pair(e.action.addr,Probdist<unsigned>())).first;
+//               it2 = ab.emplace(std::make_pair(e.action.addr,Probdist<unsigned>())).first;
+//            }
+            decltype(ad)::iterator it1 = ad.find (e.action.offset);
+            decltype(ab)::iterator it2 = ab.find (e.action.offset);
             if (it1 == ad.end ())
             {
-               it1 = ad.emplace(std::make_pair(e.action.addr,Probdist<unsigned>())).first;
-               it2 = ab.emplace(std::make_pair(e.action.addr,Probdist<unsigned>())).first;
+               it1 = ad.emplace(std::make_pair(e.action.offset,Probdist<unsigned>())).first;
+               it2 = ab.emplace(std::make_pair(e.action.offset,Probdist<unsigned>())).first;
             }
             it1->second.sample (e.depth_other());
             it2->second.sample (e.node[1].post.size());
