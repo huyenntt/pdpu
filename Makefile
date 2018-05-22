@@ -46,7 +46,7 @@ $(STIDROOT)/rt/rt.bc :
 
 
 run: dist
-	./dist/bin/dpu benchmarks/basic/cjlu.c -vv --dot u.dot -- p main3
+	./dist/bin/dpu benchmarks/basic/huyen.c -vv --dot u.dot -- p main3
 	$(MAKE) u.pdf
 
 run2: dist
