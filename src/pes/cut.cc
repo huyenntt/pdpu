@@ -212,8 +212,10 @@ bool Cut::ex_is_cex (const Event *e) const
    for (i = 0; i < nrp; i++)
    {
       if (! max[i]) continue;
-      emm = max[i]->cone.mutex_max (e->action.addr);
-      ASSERT (!em or !emm or em->action.addr == emm->action.addr);
+//      emm = max[i]->cone.mutex_max (e->action.addr);
+//      ASSERT (!em or !emm or em->action.addr == emm->action.addr);
+      emm = max[i]->cone.mutex_max (e->action.offset);
+      ASSERT (!em or !emm or em->action.offset == emm->action.offset);
       if (emm and (!em or em->depth_other() < emm->depth_other())) em = emm;
    }
 

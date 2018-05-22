@@ -280,8 +280,11 @@ void  Tunfolder:: _set_replay_sleepset (Replay &replay, const Disset &d, const C
         {
            tid = replay.pidmap.get(e->pid());
 //           TRACE_ ("r%u (#%u) %p; ", tid, e->pid(), (void*) e->action.addr);
-           PRINT ("r%u (#%u) %p; ", tid, e->pid(), (void*) e->action.addr);
-           _exec->add_sleepset (tid, (void*) e->action.addr);
+//           PRINT ("r%u (#%u) %p; ", tid, e->pid(), (void*) e->action.addr);
+//           _exec->add_sleepset (tid, (void*) e->action.addr);
+           /*Phan nay co ve van phai de nguyen*/
+           PRINT ("r%u (#%u) %zu; ", tid, e->pid(), e->action.offset);
+           _exec->add_sleepset (tid, (void*) e->action.offset);
         }
      }
      TRACE ("");

@@ -31,7 +31,7 @@ Task:: Task(const Disset &d, const Cut &j, const Trail &t, const Config &c) :
       trail (t),
       conf (c)
 {
-   PRINT ("task: ctor: (replay,dis,add, trail)");
+//   PRINT ("task: ctor: (dis,add, trail)");
 }
 
 
@@ -49,7 +49,7 @@ Task:: Task (const Task &&other) :
       trail (std::move(other.trail)),
       conf (std::move(other.conf))
 {
-   PRINT ("Task.mctor:Done");
+//   PRINT ("task.mctor:Done");
    add.dump();
 }
 
@@ -62,17 +62,17 @@ Task:: Task (const Task &&other) :
 
 void Task:: dump()
 {
-   PRINT ("Task: Dumping task:");
+   PRINT ("task: dumping task:");
 //   PRINT ("Task: Replay: %s", rep.str().c_str()); // Chua ro in replay ra nhu the nao
 //   PRINT ("tasks: dump: replay: %s", rep.str().c_str());
-   PRINT ("task: dump: dis");
-   dis.dump();
-   PRINT ("task: dump: add");
-   add.dump();
+//   PRINT ("task: dump: dis");
+//   dis.dump();
+//   PRINT ("task: dump: add");
+//   add.dump();
    PRINT ("task: dump: trail");
    trail.dump();
-   PRINT ("task: dump: conf");
-   conf.dump();
+//   PRINT ("task: dump: conf");
+//   conf.dump();
 }
 
 ////Task:: Task() :

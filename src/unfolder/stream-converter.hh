@@ -45,7 +45,7 @@ public:
    /// every call to convert().
    Pidmap pidmap;
 
-   /// The method tream_match_trail() needs to communicate to
+   /// The method stream_match_trail() needs to communicate to
    /// stream_to_events() the THSTART events of every thread whose THCREAT was
    /// parsed in stream_match_trail() but whose THSTART didn't make it to the
    /// configuration before stream_to_events() got the control. We use this map

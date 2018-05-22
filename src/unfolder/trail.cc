@@ -56,13 +56,16 @@ void Trail::dump2 (const char *prefix) const
       case ActionType::MTXLOCK :
          // find the addr
          for (j = 0; j < addrs.size(); j++)
-            if (addrs[j] == e->action.addr) break;
+//            if (addrs[j] == e->action.addr) break;
+            if (addrs[j] == e->action.offset) break;
          if (j == addrs.size())
-            addrs.push_back (e->action.addr);
+//            addrs.push_back (e->action.addr);
+            addrs.push_back (e->action.offset);
          // print it
          if (i < size() - 1 and
                tab[i+1]->action.type == ActionType::MTXUNLK and
-               tab[i+1]->action.addr == e->action.addr)
+//               tab[i+1]->action.addr == e->action.addr)
+               tab[i+1]->action.offset == e->action.offset)
          {
             i++;
             PRINT_ (" X%02u", j);
@@ -74,9 +77,11 @@ void Trail::dump2 (const char *prefix) const
       case ActionType::MTXUNLK :
          // find the addr
          for (j = 0; j < addrs.size(); j++)
-            if (addrs[j] == e->action.addr) break;
+//            if (addrs[j] == e->action.addr) break;
+            if (addrs[j] == e->action.offset) break;
          if (j == addrs.size())
-            addrs.push_back (e->action.addr);
+//            addrs.push_back (e->action.addr);
+            addrs.push_back (e->action.offset);
          PRINT_ (" U%02u", j);
          break;
       default :

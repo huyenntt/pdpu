@@ -14,13 +14,15 @@ bool Action::operator== (const Action &other) const
    case ActionType::WR64 :
    // malloc
    case ActionType::MALLOC :
-      return type == other.type and addr == other.addr and val == other.val;
+      return type == other.type and addr == other.addr and val == other.val; // Cai nay phai xem xet
 
    // free and locks
    case ActionType::FREE :
    case ActionType::MTXLOCK :
    case ActionType::MTXUNLK :
-      return type == other.type and addr == other.addr;
+//      return type == other.type and addr == other.addr;
+      return type == other.type and offset == other.offset;
+
 
    // threads
    case ActionType::THCREAT :

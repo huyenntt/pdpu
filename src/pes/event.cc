@@ -85,10 +85,10 @@ std::string Event::str () const
       s += fmt (" val %d", action.val);
       break;
    case ActionType::MTXLOCK :
-      s += fmt (" addr %p", (void*) action.addr);
+      s += fmt (" addr %p offset %-#16lx", (void*) action.addr, action.offset);
       break;
    case ActionType::MTXUNLK :
-      s += fmt (" addr %p", (void*) action.addr);
+      s += fmt (" addr %p offset %-#16lx", (void*) action.addr, action.offset);
       break;
    default :
       break;

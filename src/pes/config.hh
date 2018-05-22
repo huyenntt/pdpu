@@ -41,12 +41,12 @@ public:
    /// maximal event for the given pid, or nullptr
    inline Event *proc_max (unsigned pid);
    /// maximal event for the given address (or THCREAT/EXIT if pid is given)
-   inline const Event * mutex_max (Addr a) const;
+   inline const Event * mutex_max (Addr a) const; // now a is offset address, not its actual address
    inline Event *mutex_max (Addr a);
    
 public:
    /// map from lock addresss to events
-   std::unordered_map<Addr,Event*> mutexmax;
+   std::unordered_map<Addr,Event*> mutexmax; // Find another id for mutex, instead of addr. It will be offset
 
    void __dump_mutexes () const;
 };

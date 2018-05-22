@@ -7,7 +7,7 @@ namespace dpu
 
 void Disset:: set_flags()
 {
-   PRINT ("disset: set_flags: ...");
+//   PRINT ("disset: set_flags: ...");
    if (!stack.empty())
    {
       omp_set_lock(&stack.back().e->elock);

@@ -15,7 +15,8 @@ int __cmp (const Event *e1, const Event *e2)
    ASSERT (e2->action.type == ActionType::MTXLOCK or
          e2->action.type == ActionType::MTXUNLK);
 
-   return e1->action.addr - e2->action.addr;
+//   return e1->action.addr - e2->action.addr;
+   return e1->action.offset - e2->action.offset;
 }
 
 void merge_2ways (std::vector<const Event*> &dst,
@@ -170,9 +171,10 @@ bool Primecon::in_cfl_with (const Primecon *other) const
    
    while (1)
    {
-      // both vectors have at least one element; if the addresses are equal,
+      // both vectors have at least one element; if the address offsets are equal,
       // we check for conflicts here
-      if ((*it)->action.addr == (*it_)->action.addr)
+//      if ((*it)->action.addr == (*it_)->action.addr)
+      if ((*it)->action.offset == (*it_)->action.offset)
       {
          // if there is one, we are in conflict
          if ((*it)->node[1].in_cfl_with<1> (*it_)) return true;
@@ -214,7 +216,8 @@ bool Primecon::in_cfl_with (const Config &c) const
 
    for (const Event *e: lockmax)
    {
-      ee = c.mutex_max (e->action.addr);
+//      ee = c.mutex_max (e->action.addr);
+      ee = c.mutex_max (e->action.offset);
       if (! ee) continue;
       if (e->node[1].in_cfl_with<1> (ee)) return true;
    }
@@ -233,8 +236,10 @@ void Primecon::__dump_lockmax () const
 {
    for (const Event *e : lockmax)
    {
-      PRINT ("Addr %16p max %s",
-            (void*) e->action.addr, e->str().c_str());
+//      PRINT ("Addr %16p max %s",
+//            (void*) e->action.addr, e->str().c_str());
+      PRINT ("Addr %16p offset %zu max %s",
+                  (void*) e->action.addr, e->action.offset, e->str().c_str());
    }
 }
 
@@ -258,7 +263,7 @@ std::string Primecon::str () const
 
    for (const Event *e : lockmax)
    {
-      s += fmt ("%p: %p; ", e->action.addr, e);
+      s += fmt ("offset: %zu %p: %p; ", e->action.offset, e->action.addr, e);
    }
    s.pop_back();
    s.pop_back();
@@ -270,8 +275,10 @@ const Event *Primecon::mutex_max (Addr a) const
    // FIXME - substitute this by a binary search!
    for (const Event *e : lockmax)
    {
-      if (e->action.addr == a) return e;
-      if (e->action.addr > a) return 0; // because it's sorted!
+//      if (e->action.addr == a) return e;
+//      if (e->action.addr > a) return 0; // because it's sorted!
+      if (e->action.offset == a) return e;
+      if (e->action.offset > a) return 0; // because it's sorted!
    }
    return 0;
 }

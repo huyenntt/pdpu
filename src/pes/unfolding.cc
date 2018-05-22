@@ -126,20 +126,22 @@ Event *Unfolding::event (Action ac, Event *p, Event *m)
    if (ac.type == ActionType::THJOIN) ASSERT (m and m->action.type == ActionType::THEXIT);
    if (ac.type == ActionType::MTXLOCK)
    {
-      ASSERT (ac.addr > nrp);
+      ASSERT (ac.addr > nrp); // Cai nay de lam gif? Sao dia chi cua ac phai lon hon number of processes
       ASSERT (!m or m->action.type == ActionType::MTXUNLK);
-      ASSERT (!m or m->action.addr == ac.addr);
+//      ASSERT (!m or m->action.addr == ac.addr);
+      ASSERT (!m or m->action.offset == ac.offset);
    }
    if (ac.type == ActionType::MTXUNLK)
    {
       ASSERT (ac.addr > nrp);
       ASSERT (m);
       ASSERT (m->action.type == ActionType::MTXLOCK);
-      ASSERT (m->action.addr == ac.addr);
+//      ASSERT (m->action.addr == ac.addr);
+      ASSERT (m->action.offset == ac.offset);
    }
 
    // if the event already exist, we return it
-   PRINT ("unf: event: add event lock, unlock");
+//   PRINT ("unf: event: add event lock, unlock");
    e = find2 (&ac, p, m);
    if (e) return e;
 
@@ -153,11 +155,13 @@ Event *Unfolding::event (Action ac, Event *p, Event *m)
       ASSERT (! e->node[1].skiptab);
       ASSERT (! e->node[1].depth)
       ASSERT (! e->node[1].pre)
-      auto it = lockroots.find (ac.addr);
+//      auto it = lockroots.find (ac.addr);
+      auto it = lockroots.find (ac.offset);
       if (it == lockroots.end())
       {
          e->node[1].skiptab = (Event **) e; // init the circular list
-         lockroots[ac.addr] = e;
+//         lockroots[ac.addr] = e;
+         lockroots[ac.offset] = e;
       }
       else
       {
@@ -235,11 +239,13 @@ void Unfolding::print_dot (std::ofstream &fs, unsigned col, std::string &&msg)
          {
             case ActionType::MTXLOCK:
                bcolor = "salmon";
-               var = fmt ("%p", e.action.addr);
+//               var = fmt ("%p ", e.action.addr);
+               var = fmt ("offset %zu", e.action.offset);
                break;
             case ActionType::MTXUNLK:
                bcolor = "lightblue";
-               var = fmt ("%p", e.action.addr);
+//               var = fmt ("%p ", e.action.addr);
+               var = fmt ("offset %zu", e.action.offset);
                break;
             case ActionType::THSTART:
                bcolor = "greenyellow";

@@ -46,8 +46,8 @@ Event *Unfolding::find2 (Action *ac, Event *p, Event *m)
       if (e->pre_other() == m)
       {
          // ... and that event is action *ac
-         PRINT ("e: %s", e->str().c_str());
-         PRINT ("ac: %s, addr %p", action_type_str (ac->type), (void*) ac->addr);
+//         PRINT ("e: %s", e->str().c_str());
+//         PRINT ("ac: %s, addr %p offset %lu", action_type_str (ac->type), (void*) ac->addr, ac->offset);
          ASSERT (e->action == *ac);
          return e;
       }

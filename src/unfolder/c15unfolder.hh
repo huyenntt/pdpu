@@ -148,7 +148,7 @@ protected:
 
    /// Translates the stream of actions into events, updating c, t, and d
    inline bool stream_to_events (Config &c, const stid::action_streamt &s,
-         Trail *t = nullptr, Disset *d = nullptr);
+         Trail *t = nullptr, Disset *d = nullptr, stid::Executor *exe = nullptr);
 
    /// Receives a stream, an iterator to that stream, a vector mapping stream
    /// pids to our pids, and a trail; this method advances the iterator of the

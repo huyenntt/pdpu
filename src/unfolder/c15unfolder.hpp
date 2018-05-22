@@ -50,7 +50,7 @@ bool C15unfolder::stream_match_trail
    count = 0;
    pid = 0;
 
-//   PRINT ("c15:: Stream match trail");
+   PRINT ("c15:: Stream match trail");
 
    // match trail events as long as the trail AND the stream contain events
    for (i = 0; i < t.size() - 1 and it != end; ++it)
@@ -103,6 +103,7 @@ bool C15unfolder::stream_match_trail
          // we map the steroids tid for this new thread (it.id()) to the pid in
          // dpu for that thread (t[id]->action.val)
          pidmap.add (it.id(), t[i]->action.val);
+
          // we record the corresponding THSTART in start[]
          start[t[i]->action.val] = u.event (t[i]);
          SHOW (u.event(t[i])->str().c_str(), "s");
@@ -140,7 +141,7 @@ bool C15unfolder::stream_match_trail
 
       case RT_THCTXSW :
          //ASSERT (t[i]->data<Redbox>().size() == count);
-         // if this is the first context switch (whcih we detect by looking into
+         // if this is the first context switch (which we detect by looking into
          // the trail), we match a THSTART action with the trail and reset the
          // counter and clear the start[] vector
          pid = pidmap.get (it.id());
@@ -192,7 +193,7 @@ bool C15unfolder::stream_match_trail
 }
 
 bool C15unfolder::stream_to_events
-      (Config &c, const stid::action_streamt &s, Trail *t, Disset *d)
+      (Config &c, const stid::action_streamt &s, Trail *t, Disset *d, stid::Executor *exe)
 {
    // - If we get a Disset, then we also need to get a trail.
    // - If we get a Trail, then the Config represents the state *at the end* of
@@ -220,6 +221,7 @@ bool C15unfolder::stream_to_events
    const stid::action_stream_itt end (s.end());
    Pidmap pidmap;
    Defect defect;
+   uint64_t mtx_id;
 
    // NOTE: all of these checks can be done later
    // disset => trail
@@ -238,9 +240,20 @@ bool C15unfolder::stream_to_events
 
    DEBUG ("c15u: s2e: c %s t %zd", c.str().c_str(), t ? t->size() : -1);
 
+  for (unsigned i = 0; i < Unfolding::MAX_PROC; i++)
+  {
+//       PRINT ("start[%d] %p", i, start[i]);
+     start[i] = nullptr;
+  }
+
    // reset the pidpool and the pidmap for this execution
    pidpool.clear ();
-   for (unsigned i = 0; i < Unfolding::MAX_PROC; i++) ASSERT (start[i] == nullptr);
+
+   for (unsigned i = 0; i < Unfolding::MAX_PROC; i++)
+   {
+      PRINT ("start[%d] %p", i, start[i]);
+      ASSERT (start[i] == nullptr); // TAI SAO LAI PHAI ASSERT O DAY???
+   }
 
    // skip the first context switch to pid 0, if present
    if (it != end and it.type () == RT_THCTXSW)
@@ -278,10 +291,16 @@ bool C15unfolder::stream_to_events
       switch (it.type())
       {
       case RT_MTXLOCK :
+         PRINT ("LOCK");
          e->flags.crb = 1;
-         ee = c.mutex_max (it.addr());
-         PRINT ("ee %p, it.addr: %p", ee, it.addr());
-         e = u.event ({.type = ActionType::MTXLOCK, .addr = it.addr()}, e, ee);
+//         PRINT ("Executor: begin %16p it.addr %16p", exe->get_runtime()->mem.begin, it.addr());
+         PRINT ("Executor: begin %16p it.addr %16p", exe->get_runtime()->mem.begin, it.addr());
+         PRINT ("Sao chet?");
+//         mtx_id = it.addr() - (uint64_t) exe->get_runtime()->mem.begin; // Phai ep kieu de dia chi nho cua mem.begin ve kieu uint64_t
+//         PRINT ("mtx_id: %zu", mtx_id);
+         ee = c.mutex_max (mtx_id); // addr phai tra ve offset address
+
+         e = u.event ({.type = ActionType::MTXLOCK, .addr = it.addr(), .offset = mtx_id}, e, ee);
 
          if (d and ! d->trail_push (e, t->size())) return false;
          if (t) t->push(e);
@@ -289,15 +308,18 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_MTXUNLK :
+         PRINT ("UNLOCK");
          e->flags.crb = 1;
-         ee = c.mutex_max (it.addr());
-         e = u.event ({.type = ActionType::MTXUNLK, .addr = it.addr()}, e, ee);
+         mtx_id = it.addr() - (uint64_t) exe->get_runtime()->mem.begin;
+         ee = c.mutex_max (mtx_id);
+         e = u.event ({.type = ActionType::MTXUNLK, .addr = it.addr(), .offset = mtx_id}, e, ee);
          if (d and ! d->trail_push (e, t->size())) return false;
          if (t) t->push (e);
          c.fire (e);
          break;
 
       case RT_THCTXSW :
+         PRINT ("CTXSW");
          e->flags.crb = 1;
          // on first context switch to a thread we push the THSTART event
          e = start[pidmap.get(it.id())];
@@ -317,6 +339,7 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_THCREAT :
+         PRINT ("CREAT");
          e->flags.crb = 1;
          ASSERT (it.id() >= 1);
          // we insert or retrive THCREAT event, requesting insertion with pid=0
@@ -346,6 +369,7 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_THEXIT :
+         PRINT ("EXIT");
          e->flags.crb = 1;
          e = u.event ({.type = ActionType::THEXIT}, e);
          c.fire (e);
@@ -365,6 +389,7 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_ABORT :
+         PRINT ("JOIN");
          if (report.nr_abort >= CONFIG_MAX_DEFECT_REPETITION) break;
          report.nr_abort++;
          defect.description = "The program called abort()";
@@ -459,14 +484,16 @@ bool C15unfolder::stream_to_events
 
       default :
          SHOW (it.type(), "d");
-         SHOW (it.addr(), "lu");
+         SHOW (it.addr(), "lu");// cu de addr o day xem sao
          SHOW (it.val()[0], "lu");
          SHOW (it.id(), "u");
          SHOW (it.str(), "s");
          ASSERT (0);
       }
    }
-   if (verb_debug) pidmap.dump (true);
+
+   PRINT ("trail size: %lu",t->size());
+//   if (verb_debug) pidmap.dump (true); // KO can dump pidmap
    return true;
 }
 

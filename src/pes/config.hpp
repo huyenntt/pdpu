@@ -45,8 +45,9 @@ void Config::fire (Event *e)
    {
    case ActionType::MTXLOCK   :
    case ActionType::MTXUNLK   :
-      ASSERT (mutex_max (e->action.addr) == e->pre_other());
-      mutexmax[e->action.addr] = e;
+//      ASSERT (mutex_max (e->action.addr) == e->pre_other());
+      ASSERT (mutex_max (e->action.offset) == e->pre_other());
+      mutexmax[e->action.offset] = e;
       break;
 
    default :
@@ -61,11 +62,16 @@ void Config::unfire (Event *e)
    {
    case ActionType::MTXLOCK :
    case ActionType::MTXUNLK :
-      ASSERT (mutex_max (e->action.addr) == e);
-      if (! e->pre_other())
-         mutexmax.erase  (e->action.addr);
-      else
-         mutexmax[e->action.addr] = e->pre_other();
+//      ASSERT (mutex_max (e->action.addr) == e);
+//      if (! e->pre_other())
+//         mutexmax.erase  (e->action.addr);
+//      else
+//         mutexmax[e->action.addr] = e->pre_other();
+      ASSERT (mutex_max (e->action.offset) == e);
+            if (! e->pre_other())
+               mutexmax.erase  (e->action.offset);
+            else
+               mutexmax[e->action.offset] = e->pre_other();
       break;
 
    default :
@@ -86,7 +92,7 @@ Event *Config::proc_max (unsigned pid)
    return (*this)[pid]; // inherited Cut::operator[]
 }
 
-const Event *Config::mutex_max (Addr a) const
+const Event *Config::mutex_max (Addr a) const // a is offset address
 {
    auto it = mutexmax.find (a);
    return it == mutexmax.end() ? nullptr : it->second;

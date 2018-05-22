@@ -49,6 +49,7 @@ struct Action
 {
    ActionType type;
    Addr addr;
+   Addr offset; // Tinh bang dia chi offset tu MTX den diem dau cua vung nho duoc cap phat cho moi executor
    uint64_t val;
 
    void pretty_print ();
