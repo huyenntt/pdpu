@@ -100,12 +100,12 @@ public:
    void add_multiple_runs (const Replay &r);
 
    // explores only one maximal configuration provided by tsk
-   void explore_one_maxconfig(Task *tsk, std::queue<Task> &tasks);
+//   void explore_one_maxconfig(Task *tsk, std::queue<Task> &tasks);
    void explore_one_maxconfig(Task *tsk);
 
    /// the CONCUR'15 POR algorithm
    void explore_para (); // without queue of tasks
-   void explore_para1 (); // with queue of tasks
+//   void explore_para1 (); // with queue of tasks
 
    void explore_seq();
 

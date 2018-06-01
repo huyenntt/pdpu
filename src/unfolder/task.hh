@@ -39,6 +39,7 @@ namespace dpu {
 class Task
 {
 public:
+//   int tskid;
 //   Replay rep;
    Disset dis;
    Cut add;
@@ -48,6 +49,7 @@ public:
 public:
 //   Task ();
 //   Task (Replay rpl, const Disset &d, const Cut &add, const Trail &t, const Config &c);
+//   Task (int tcount, const Disset &d, const Cut &add, const Trail &t, const Config &c);
    Task (const Disset &d, const Cut &add, const Trail &t, const Config &c);
    Task (const Task &&other);
 //   Task& operator= (Task &&other);

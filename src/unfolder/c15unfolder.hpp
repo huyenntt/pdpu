@@ -50,7 +50,7 @@ bool C15unfolder::stream_match_trail
    count = 0;
    pid = 0;
 
-   PRINT ("c15:: Stream match trail");
+   PRINT ("c15: stream-Match_trail: trail: %zu", t.size());
 
    // match trail events as long as the trail AND the stream contain events
    for (i = 0; i < t.size() - 1 and it != end; ++it)
@@ -240,20 +240,14 @@ bool C15unfolder::stream_to_events
 
    DEBUG ("c15u: s2e: c %s t %zd", c.str().c_str(), t ? t->size() : -1);
 
-  for (unsigned i = 0; i < Unfolding::MAX_PROC; i++)
-  {
-//       PRINT ("start[%d] %p", i, start[i]);
-     start[i] = nullptr;
-  }
+//  for (unsigned i = 0; i < Unfolding::MAX_PROC; i++)
+//  {
+////       PRINT ("start[%d] %p", i, start[i]);
+//     start[i] = nullptr;
+//  }
 
    // reset the pidpool and the pidmap for this execution
    pidpool.clear ();
-
-   for (unsigned i = 0; i < Unfolding::MAX_PROC; i++)
-   {
-      PRINT ("start[%d] %p", i, start[i]);
-      ASSERT (start[i] == nullptr); // TAI SAO LAI PHAI ASSERT O DAY???
-   }
 
    // skip the first context switch to pid 0, if present
    if (it != end and it.type () == RT_THCTXSW)
@@ -280,39 +274,57 @@ bool C15unfolder::stream_to_events
       e = u.event (nullptr); // bottom
       c.fire (e);
       ASSERT (!e->flags.ind);
-      if (d) d->trail_push (e, t->size());
+      if (d) d->trail_push (e, t->size()); // sao lai add bottom vào D nhỉ? Luc nay chac chan chua co D
       if (t) t->push(e);
    }
 
    // we create (or retrieve) an event for every action remaining in the stream
+   PRINT ("c15: s_t_e: creating events for the rest of stream");
    for (; it != end; ++it)
    {
-      SHOW (it.str(), "s");
+
+//      SHOW (it.str(), "s");
+//      PRINT ("stream.it: %s", it.str());
       switch (it.type())
       {
       case RT_MTXLOCK :
          PRINT ("LOCK");
-         e->flags.crb = 1;
-//         PRINT ("Executor: begin %16p it.addr %16p", exe->get_runtime()->mem.begin, it.addr());
-         PRINT ("Executor: begin %16p it.addr %16p", exe->get_runtime()->mem.begin, it.addr());
-         PRINT ("Sao chet?");
-//         mtx_id = it.addr() - (uint64_t) exe->get_runtime()->mem.begin; // Phai ep kieu de dia chi nho cua mem.begin ve kieu uint64_t
+//         omp_set_lock(&e->elock);
+            e->flags.crb = 1;
+//         omp_unset_lock(&e->elock);
+//         PRINT ("it.addre %16p", (void*) it.addr());
+//         PRINT ("Executor: begin %16p it.addr %16p", exe->get_runtime()->mem.begin, (void*) it.addr());
+         mtx_id = it.addr() - (uint64_t) exe->get_runtime()->mem.begin; // Phai ep kieu de dia chi nho cua mem.begin ve kieu uint64_t
 //         PRINT ("mtx_id: %zu", mtx_id);
          ee = c.mutex_max (mtx_id); // addr phai tra ve offset address
 
-         e = u.event ({.type = ActionType::MTXLOCK, .addr = it.addr(), .offset = mtx_id}, e, ee);
-
-         if (d and ! d->trail_push (e, t->size())) return false;
+         omp_set_lock(&ulock);
+            e = u.event ({.type = ActionType::MTXLOCK, .addr = it.addr(), .offset = mtx_id}, e, ee);
+         omp_unset_lock(&ulock);
+//         PRINT ("c15:ste: new event: %s", e->str().c_str());
+//         d->dump();
+         if (d and ! d->trail_push (e, t->size()))
+            {
+               PRINT ("c15:ste: add d has problems");
+               return false;
+            }
          if (t) t->push(e);
          c.fire (e);
+//         PRINT ("Done add LOCK");
          break;
 
       case RT_MTXUNLK :
          PRINT ("UNLOCK");
-         e->flags.crb = 1;
+//         omp_set_lock(&e->elock);
+            e->flags.crb = 1;
+//         omp_unset_lock(&e->elock);
+//         e->flags.crb = 1;
          mtx_id = it.addr() - (uint64_t) exe->get_runtime()->mem.begin;
          ee = c.mutex_max (mtx_id);
-         e = u.event ({.type = ActionType::MTXUNLK, .addr = it.addr(), .offset = mtx_id}, e, ee);
+
+         omp_set_lock(&ulock);
+            e = u.event ({.type = ActionType::MTXUNLK, .addr = it.addr(), .offset = mtx_id}, e, ee);
+         omp_unset_lock(&ulock);
          if (d and ! d->trail_push (e, t->size())) return false;
          if (t) t->push (e);
          c.fire (e);
@@ -320,11 +332,15 @@ bool C15unfolder::stream_to_events
 
       case RT_THCTXSW :
          PRINT ("CTXSW");
-         e->flags.crb = 1;
+//         omp_set_lock(&e->elock);
+            e->flags.crb = 1;
+//         omp_unset_lock(&e->elock);
+//         e->flags.crb = 1;
          // on first context switch to a thread we push the THSTART event
          e = start[pidmap.get(it.id())];
          if (e)
          {
+//            PRINT ("start[] befor being set to nullptr: %s", e->str().c_str());
             start[pidmap.get(it.id())] = nullptr;
             if (d and ! d->trail_push (e, t->size())) return false;
             if (t) t->push (e);
@@ -340,10 +356,15 @@ bool C15unfolder::stream_to_events
 
       case RT_THCREAT :
          PRINT ("CREAT");
-         e->flags.crb = 1;
+//         omp_set_lock(&e->elock);
+            e->flags.crb = 1;
+//         omp_unset_lock(&e->elock);
+//         e->flags.crb = 1;
          ASSERT (it.id() >= 1);
          // we insert or retrive THCREAT event, requesting insertion with pid=0
-         e = u.event ({.type = ActionType::THCREAT, .val = 0}, e);
+         omp_set_lock(&ulock);
+            e = u.event ({.type = ActionType::THCREAT, .val = 0}, e);
+         omp_unset_lock(&ulock);
          // we now let the pidpool choose the pid of the new process
          newpid = pidpool.create (e);
          // init pid if the event has just been inserted in the unfolding
@@ -360,7 +381,10 @@ bool C15unfolder::stream_to_events
          pidmap.add (it.id(), e->action.val);
          // we create now the new process but delay inserting the THSTART event
          // into the config and the trail until the first context switch
-         ee = u.event (e);
+//         omp_set_lock(&ulock);
+            ee = u.event (e);
+//         omp_unset_lock(&ulock);
+
          start[e->action.val] = ee;
          ASSERT (ee->pid() == e->action.val);
          if (d and ! d->trail_push (e, t->size())) return false;
@@ -370,17 +394,28 @@ bool C15unfolder::stream_to_events
 
       case RT_THEXIT :
          PRINT ("EXIT");
-         e->flags.crb = 1;
-         e = u.event ({.type = ActionType::THEXIT}, e);
+//         omp_set_lock(&e->elock);
+            e->flags.crb = 1;
+//         omp_unset_lock(&e->elock);
+//         e->flags.crb = 1;
+
+         omp_set_lock(&ulock);
+            e = u.event ({.type = ActionType::THEXIT}, e);
+         omp_unset_lock(&ulock);
+
          c.fire (e);
          if (d and ! d->trail_push (e, t->size())) return false;
          if (t) t->push (e);
          break;
 
       case RT_THJOIN :
+         PRINT ("JOIN");
          e->flags.crb = 1;
          ee = c[pidmap.get(it.id())];
-         e = u.event ({.type = ActionType::THJOIN, .val = pidmap.get(it.id())}, e, ee);
+         omp_set_lock(&ulock);
+            e = u.event ({.type = ActionType::THJOIN, .val = pidmap.get(it.id())}, e, ee);
+         omp_unset_lock(&ulock);
+
          // notify the pidpool that we saw a THJOIN
          pidpool.join (e);
          if (d and ! d->trail_push (e, t->size())) return false;
@@ -389,7 +424,7 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_ABORT :
-         PRINT ("JOIN");
+         PRINT ("ABORT");
          if (report.nr_abort >= CONFIG_MAX_DEFECT_REPETITION) break;
          report.nr_abort++;
          defect.description = "The program called abort()";
@@ -401,6 +436,7 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_EXITNZ :
+         PRINT ("EXITNZ");
          if (report.nr_exitnz >= CONFIG_MAX_DEFECT_REPETITION) break;
          report.nr_exitnz++;
          defect.description =
@@ -413,26 +449,31 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_RD8 :
+         PRINT ("RD8");
          if (! e->flags.crb)
             //e->data<Redbox>().push_back
             //   ({.type = ActionType::RD8, .addr = it.addr(), .val = *it.val()});
          break;
       case RT_RD16 :
+         PRINT ("RD16");
          if (! e->flags.crb)
             //e->data<Redbox>().push_back
             //   ({.type = ActionType::RD16, .addr = it.addr(), .val = *it.val()});
          break;
       case RT_RD32 :
+         PRINT ("RD32");
          if (! e->flags.crb)
             //e->data<Redbox>().push_back
             //   ({.type = ActionType::RD32, .addr = it.addr(), .val = *it.val()});
          break;
       case RT_RD64 :
+         PRINT ("RD64");
          if (! e->flags.crb)
             //e->data<Redbox>().push_back
             //   ({.type = ActionType::RD64, .addr = it.addr(), .val = *it.val()});
          break;
       case RT_RD128 :
+         PRINT ("RD128");
          ASSERT (it.val_size() == 2);
          if (! e->flags.crb)
          {
@@ -492,7 +533,13 @@ bool C15unfolder::stream_to_events
       }
    }
 
-   PRINT ("trail size: %lu",t->size());
+//   PRINT ("At the end of stream_to_events");
+//   for (unsigned i = 0; i < Unfolding::MAX_PROC; i++)
+//     {
+//         PRINT ("start[%d] %p", i, start[i]);
+//     }
+
+//   PRINT ("trail size: %lu",t->size());
 //   if (verb_debug) pidmap.dump (true); // KO can dump pidmap
    return true;
 }

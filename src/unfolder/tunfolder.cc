@@ -272,7 +272,7 @@ void  Tunfolder:: _set_replay_sleepset (Replay &replay, const Disset &d, const C
      //  // is still enabled at J; this assumes that J contains C
      PRINT ("tunf: Set replay and sleep set: set sleep set ");
      _exec->clear_sleepset();
-     d.dump();
+//     d.dump();
      for (auto e : d.unjustified)
      {
         ASSERT (e->action.type == ActionType::MTXLOCK);
@@ -283,12 +283,12 @@ void  Tunfolder:: _set_replay_sleepset (Replay &replay, const Disset &d, const C
 //           PRINT ("r%u (#%u) %p; ", tid, e->pid(), (void*) e->action.addr);
 //           _exec->add_sleepset (tid, (void*) e->action.addr);
            /*Phan nay co ve van phai de nguyen*/
-           PRINT ("r%u (#%u) %zu; ", tid, e->pid(), e->action.offset);
+//           DEBUG ("r%u (#%u) %0*x; ", tid, e->pid(), e->action.offset);
            _exec->add_sleepset (tid, (void*) e->action.offset);
         }
      }
      TRACE ("");
-     PRINT ("tunf: set_replay_sleepset: Done");
+//     PRINT ("tunf: set_replay_sleepset: Done");
 }
 
 /*All functions related to algorithm */

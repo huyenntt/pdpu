@@ -25,7 +25,9 @@ namespace dpu{
 //   PRINT ("task: ctor: (replay,dis,add, trail)");
 //}
 
+//Task:: Task(int tcount, const Disset &d, const Cut &j, const Trail &t, const Config &c) :
 Task:: Task(const Disset &d, const Cut &j, const Trail &t, const Config &c) :
+//      tskid (tcount),
       dis (d),
       add (j),
       trail (t),
@@ -43,6 +45,7 @@ Task:: Task(const Disset &d, const Cut &j, const Trail &t, const Config &c) :
 //}
 
 Task:: Task (const Task &&other) :
+//      tskid (other.tskid),
 //      rep (std::move(other.rep)),
       dis (std::move(other.dis)),
       add (std::move(other.add)),
@@ -50,7 +53,7 @@ Task:: Task (const Task &&other) :
       conf (std::move(other.conf))
 {
 //   PRINT ("task.mctor:Done");
-   add.dump();
+//   add.dump();
 }
 
 // move operator
@@ -62,13 +65,14 @@ Task:: Task (const Task &&other) :
 
 void Task:: dump()
 {
-   PRINT ("task: dumping task:");
+
+//   PRINT ("task: dumping task: id %d", tskid);
 //   PRINT ("Task: Replay: %s", rep.str().c_str()); // Chua ro in replay ra nhu the nao
 //   PRINT ("tasks: dump: replay: %s", rep.str().c_str());
-//   PRINT ("task: dump: dis");
-//   dis.dump();
-//   PRINT ("task: dump: add");
-//   add.dump();
+   PRINT ("task: dump: dis");
+   dis.dump();
+   PRINT ("task: dump: add");
+   add.dump();
    PRINT ("task: dump: trail");
    trail.dump();
 //   PRINT ("task: dump: conf");

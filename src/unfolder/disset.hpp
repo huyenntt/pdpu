@@ -256,11 +256,13 @@ void Disset::unjust_add (Elem *e)
    // we add e to the head of the list
 
    ASSERT (e);
+   PRINT (" dis: unjust_add  %s", e->e->str().c_str());
    ASSERT (! unjust_contains (e->e));
    e->next = unjust;
    e->prev = nullptr;
    if (unjust) unjust->prev = e;
    unjust = e;
+//   PRINT ("Done. New unjust %s", unjust->e->str().c_str());
 }
 
 void Disset::unjust_remove (Elem *e)
@@ -342,7 +344,7 @@ bool Disset::trail_push (Event *e, int idx)
    {
       ssb_count++;
 
-#ifdef VERB_LEVEL_TRACE
+//#ifdef VERB_LEVEL_TRACE
       unsigned u, j;
       u = j = 0;
       for (auto it = justified.begin(), end = justified.end();
@@ -350,11 +352,14 @@ bool Disset::trail_push (Event *e, int idx)
       for (auto it = unjustified.begin(), end = unjustified.end();
             it != end; ++it) u++;
 
-      TRACE ("c15u: disset: SSB, count %u, |trail| %u, "
-            "|D| %u (%u just, %u unjust)",
-            ssb_count, idx, u + j, j, u);
-#endif
-
+//      TRACE ("c15u: disset: SSB, count %u, |trail| %u, "
+//            "|D| %u (%u just, %u unjust)",
+//            ssb_count, idx, u + j, j, u);
+      PRINT ("c15u: disset: SSB, count %u, |trail| %u, "
+                 "|D| %u (%u just, %u unjust)",
+                 ssb_count, idx, u + j, j, u);
+//#endif
+      PRINT ("dis: trail_push: add event already in D");
       return false;
    }
 
@@ -365,8 +370,10 @@ bool Disset::trail_push (Event *e, int idx)
       nxt = el->next;
       if (e->in_icfl_with (el->e))
       {
-         DEBUG ("dis: unadd: justifying %08x (disabler %08x, idx %d)",
-               el->e->uid(), e->uid(), idx);
+//         DEBUG ("dis: unadd: justifying %08x (disabler %08x, idx %d)",
+//               el->e->uid(), e->uid(), idx);
+         PRINT ("dis: unadd: justifying %08x (disabler %08x, idx %d)",
+                       el->e->uid(), e->uid(), idx);
          unjust_remove (el);
          just_push (el);
          el->disabler = idx;
@@ -388,17 +395,20 @@ void Disset::trail_pop (int idx)
 //      PRINT ("dis: trail_pop: stack.back:ind %d", stack.back().e->flags.ind);
 //   else
 //      PRINT ("dis: trail_pop: empty disset");
+   PRINT (" dis: trail_pop");
 
    while (idx < top_idx) // Voi nhung event in trail (idx < top_idx), remove e khoi D vi moi e in trail: e < e' with e'in D
    {
       ASSERT (idx == top_idx - 1);
-//      ASSERT (stack.back().e->flags.ind); // Because the last event is changed
-//      ind by dis::unadd function, this statement should be removed
+      ASSERT (stack.back().e->flags.ind); // Need to set_flags for all events in disset
       unjust_remove (&stack.back());
-      stack.back().e->flags.ind = 0;
+
+      omp_set_lock(&stack.back().e->elock); // co the ko can vi set locks cho tat ca event in D bang set_flags
+         stack.back().e->flags.ind = 0;
+      omp_unset_lock(&stack.back().e->elock);
 
 //      DEBUG ("c15u: disset: removing %08x", stack.back().e->uid());
-      PRINT ("dis: trail_pop removing %08x", stack.back().e->uid());
+      PRINT (" dis: trail_pop removing %08x", stack.back().e->uid());
       stack.pop_back ();
       top_idx = stack.size() ? stack.back().idx : -1;
    }
@@ -408,14 +418,15 @@ void Disset::trail_pop (int idx)
    // of justified events and will be such that their "disabler" field will be
    // equal to idx; we iterate through them and transfer them from one list to
    // the other
-   while (idx <= top_disabler)
+   while (idx <= top_disabler) // < hay <=
    {
       ASSERT (idx == top_disabler);
       ASSERT (! just_isempty ());
       ASSERT (idx == just_peek()->disabler);
-      PRINT ("dis: trail_pop: un-justifying %08x", just_peek()->e->uid());
+      PRINT (" dis: trail_pop: un-justifying %08x", just_peek()->e->uid());
       unjust_add (just_pop ());
       top_disabler = just_isempty () ? -1 : just_peek()->disabler;
+//      PRINT ("Now idx %d top_disabler  %d", idx, top_disabler);
    }
 }
 
