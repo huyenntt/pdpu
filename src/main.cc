@@ -615,7 +615,7 @@ int main (int argc, char **argv)
       }
 
       PRINT ("UNFOLDING: ==============");
-      if (verb_debug) unf->u.dump ();
+//      if (verb_debug) unf->u.dump ();
 
       // save the defects report if we got defects during the POR analysis
       if (unf->report.defects.size())
