@@ -62,7 +62,7 @@ std::string Event::str () const
    std::string s;
 
    // a nice event id is
-   // fmt ("e%x%-6x", pid(), puid())
+   // fmt ("e%x%-6x", pid(), puid()) %0*x
 
    s = fmt ("e %0*x p %2d d %02u,%02u,%02u pre %08x %08x "
          "%c%c%c%c dat %s ac %s",
