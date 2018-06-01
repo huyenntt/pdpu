@@ -46,24 +46,24 @@ $(STIDROOT)/rt/rt.bc :
 
 
 run: dist
-	./dist/bin/dpu benchmarks/basic/huyen.c -vv --dot u.dot -- p main3
+	./dist/bin/dpu benchmarks/basic/huyen.c  -k2 --callgrind
 	$(MAKE) u.pdf
 
 run2: dist
-	./dist/bin/dpu experiments/cav18/bench/multiprodcon.c --dot u.dot -- p main4
+	./dist/bin/dpu experiments/cav18/bench/multiprodcon.c -- p main4
 	#$(MAKE) u.svg
 	
 # run with callgrind for benchmarks	
 rundisp: dist
-	./dist/bin/dpu experiments/cav18/bench/dispatcher.c -k0
+	./dist/bin/dpu experiments/cav18/bench/dispatcher.c -k3
 runmpat: dist
-	 ./dist/bin/dpu experiments/cav18/bench/mpat.c -k0
+	 ./dist/bin/dpu experiments/cav18/bench/mpat.c -k3
 runmpc: dist
-	./dist/bin/dpu experiments/cav18/bench/multiprodcon.c -k0
+	./dist/bin/dpu experiments/cav18/bench/multiprodcon.c -k3 --callgrind
 runpi: dist
-	./dist/bin/dpu experiments/cav18/bench/pi/pth_pi_mutex.c -k0
+	./dist/bin/dpu experiments/cav18/bench/pi/pth_pi_mutex.c -k3 --callgrind
 runpol: dist
-	./dist/bin/dpu experiments/cav18/bench/poke.c -k0
+	./dist/bin/dpu experiments/cav18/bench/poke.c -k3
 
 tags :
 	ctags -R --c++-kinds=+p --fields=+K --extra=+q src/ tests/unit/ config.h $(shell llvm-config-$(CONFIG_LLVM_VER) --includedir)
