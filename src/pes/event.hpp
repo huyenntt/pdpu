@@ -59,7 +59,7 @@ Event::Event (Action ac, Event *m, bool bf) :
 
    omp_init_lock(&elock);
 
-   PRINT ("Event.ctor: %s ind: %d", str().c_str(), flags.ind);
+   PRINT ("Event.ctor: %s", str().c_str());
    //DEBUG ("Event.ctor: e %-16p %s", this, cone.str().c_str());
 }
 

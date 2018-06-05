@@ -14,12 +14,12 @@ void Disset:: set_flags()
 //         stack.back().e->flags.ind = 1;
 ////      omp_unset_lock(&stack.back().e->elock);
 //   }
-   for (auto &ele : stack)
-   {
-      omp_set_lock(&ele.e->elock); // lock event in disset until we finish the computation of alternative
-         ele.e->flags.ind = 1;
+//   for (auto &ele : stack)
+//   {
+//      omp_set_lock(&ele.e->elock); // lock event in disset until we finish the computation of alternative
+//         ele.e->flags.ind = 1;
 //      omp_unset_lock(&ele.e->elock);
-   }
+//   }
    // Only last event added to D needs to be set flags.ind = 1 as it will be changed back later to
 //   if (unjust)
 //   {
@@ -27,17 +27,24 @@ void Disset:: set_flags()
 //         unjust->e->flags.ind = 1;
 //      omp_unset_lock(&unjust->e->elock);
 //   }
+      omp_set_lock(&stack.back().e->elock);
+          stack.back().e->flags.ind = 0;
+//      omp_unset_lock(&stack.back()->elock);
 }
 
 void Disset:: unset_flags()
 {
 //   PRINT ("disset: unset_flags: ...");
-   for (auto &ele : stack)
-   {
+//   for (auto &ele : stack)
+//   {
 //       omp_set_lock(&ele.e->elock);
-          ele.e->flags.ind = 0;
-       omp_unset_lock(&ele.e->elock);
-   }
+//          ele.e->flags.ind = 0;
+//       omp_unset_lock(&ele.e->elock);
+//   }
+//    omp_set_lock(&stack.back()->elock);
+       stack.back().e->flags.ind = 0;
+    omp_unset_lock(&stack.back().e->elock);
+
 //   if (unjust)
 //   {
 //      omp_set_lock(&unjust->e->elock);

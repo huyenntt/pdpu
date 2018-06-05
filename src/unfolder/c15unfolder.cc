@@ -654,6 +654,7 @@ void C15unfolder:: explore_seq()
            PRINT ("c15: explore: last-event_trail: %s", last_old_trail->str().c_str() );
 
         // Lock all events in disset and set flags.ind = 1
+        tsk->dis.dump();
         tsk->dis.set_flags();
 //        PRINT ("c15: explore: after set flags: ");
 //        tsk->dis.dump();
@@ -720,7 +721,8 @@ void C15unfolder:: explore_seq()
         } // end of while trail
 
        // Unlock all events in disset and set flags.ind back to 0
-        tsk->dis.unset_flags();
+        tsk->dis.dump();
+       tsk->dis.unset_flags();
        PRINT ("c15: explore: stop backtracking==========================");
 
         // if we exhausted the time cap, we stop
@@ -899,9 +901,9 @@ void C15unfolder::compute_cex_lock (Event *e, Event **head)
       ASSERT (!em or em->action.type == ActionType::MTXUNLK);
 
       // 7. (action, ep, em) is a possibly new event
-      omp_set_lock(&ulock);
+//      omp_set_lock(&ulock);
          ee = u.event (e->action, ep, em);
-      omp_unset_lock(&ulock);
+//      omp_unset_lock(&ulock);
 
 //      PRINT ("c15u: cex-lock:  new cex: %s", ee->str().c_str());
 

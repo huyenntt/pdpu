@@ -298,9 +298,9 @@ bool C15unfolder::stream_to_events
 //         PRINT ("mtx_id: %zu", mtx_id);
          ee = c.mutex_max (mtx_id); // addr phai tra ve offset address
 
-         omp_set_lock(&ulock);
+//         omp_set_lock(&ulock);
             e = u.event ({.type = ActionType::MTXLOCK, .addr = it.addr(), .offset = mtx_id}, e, ee);
-         omp_unset_lock(&ulock);
+//         omp_unset_lock(&ulock);
 //         PRINT ("c15:ste: new event: %s", e->str().c_str());
 //         d->dump();
          if (d and ! d->trail_push (e, t->size()))
@@ -322,9 +322,9 @@ bool C15unfolder::stream_to_events
          mtx_id = it.addr() - (uint64_t) exe->get_runtime()->mem.begin;
          ee = c.mutex_max (mtx_id);
 
-         omp_set_lock(&ulock);
+//         omp_set_lock(&ulock);
             e = u.event ({.type = ActionType::MTXUNLK, .addr = it.addr(), .offset = mtx_id}, e, ee);
-         omp_unset_lock(&ulock);
+//         omp_unset_lock(&ulock);
          if (d and ! d->trail_push (e, t->size())) return false;
          if (t) t->push (e);
          c.fire (e);
@@ -362,9 +362,9 @@ bool C15unfolder::stream_to_events
 //         e->flags.crb = 1;
          ASSERT (it.id() >= 1);
          // we insert or retrive THCREAT event, requesting insertion with pid=0
-         omp_set_lock(&ulock);
+//         omp_set_lock(&ulock);
             e = u.event ({.type = ActionType::THCREAT, .val = 0}, e);
-         omp_unset_lock(&ulock);
+//         omp_unset_lock(&ulock);
          // we now let the pidpool choose the pid of the new process
          newpid = pidpool.create (e);
          // init pid if the event has just been inserted in the unfolding
@@ -399,9 +399,9 @@ bool C15unfolder::stream_to_events
 //         omp_unset_lock(&e->elock);
 //         e->flags.crb = 1;
 
-         omp_set_lock(&ulock);
+//         omp_set_lock(&ulock);
             e = u.event ({.type = ActionType::THEXIT}, e);
-         omp_unset_lock(&ulock);
+//         omp_unset_lock(&ulock);
 
          c.fire (e);
          if (d and ! d->trail_push (e, t->size())) return false;
@@ -412,9 +412,9 @@ bool C15unfolder::stream_to_events
          PRINT ("JOIN");
          e->flags.crb = 1;
          ee = c[pidmap.get(it.id())];
-         omp_set_lock(&ulock);
+//         omp_set_lock(&ulock);
             e = u.event ({.type = ActionType::THJOIN, .val = pidmap.get(it.id())}, e, ee);
-         omp_unset_lock(&ulock);
+//         omp_unset_lock(&ulock);
 
          // notify the pidpool that we saw a THJOIN
          pidpool.join (e);
