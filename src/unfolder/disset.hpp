@@ -280,6 +280,7 @@ void Disset::unjust_remove (Elem *e)
       unjust = e->next;
    }
    if (e->next) e->next->prev = e->prev;
+   // Remove event di dau?
 }
 
 void Disset::unjust_remove_head ()
@@ -301,8 +302,9 @@ void Disset::add (Event *e, int idx)
    // the top_idx variable
 
    ASSERT (e);
-//   PRINT ("Dis: add: ");
+   PRINT ("Dis: add: ");
 //   ASSERT (!e->flags.ind); // e is not in D yet
+   ASSERT (!inD(e));
    ASSERT (idx >= 0);
    ASSERT (idx >= top_idx);
    if (stack.size() >= stack.capacity())
@@ -324,8 +326,9 @@ void Disset::unadd ()
    ASSERT (stack.size ());
    ASSERT (unjust == &stack.back());
 //   ASSERT (stack.back().e->flags.ind);
+   ASSERT ( inD(stack.back().e) );
 
-//   stack.back().e->flags.ind = 0;
+//   stack.back().e->flags.ind = 0; // ko dung den flags nay nua
    unjust_remove_head ();
    stack.pop_back ();
    top_idx = stack.size() ? stack.back().idx : -1;
@@ -340,11 +343,12 @@ bool Disset::trail_push (Event *e, int idx)
 
    // if we are pushing to the trail an event that is already in D, we got a
    // sleep-set block execution, and we should stop it
-   if (e->flags.ind)
+//   if (e->flags.ind)
+   if (inD(e))
    {
       ssb_count++;
 
-//#ifdef VERB_LEVEL_TRACE
+#ifdef VERB_LEVEL_TRACE
       unsigned u, j;
       u = j = 0;
       for (auto it = justified.begin(), end = justified.end();
@@ -358,7 +362,7 @@ bool Disset::trail_push (Event *e, int idx)
       PRINT ("c15u: disset: SSB, count %u, |trail| %u, "
                  "|D| %u (%u just, %u unjust)",
                  ssb_count, idx, u + j, j, u);
-//#endif
+#endif
       PRINT ("dis: trail_push: add event already in D");
       return false;
    }
@@ -390,17 +394,14 @@ void Disset::trail_pop (int idx)
    // remove at least the top, and potentially other elements of D, as multiple
    // events in D can have been stored at the same depth top_idx;
    ASSERT (idx >= -1);
-//   PRINT ("Dis: trail_pop: idx %u, top_idx %d, top_disabler %d", idx, top_idx, top_disabler);
-//   if (!stack.empty())
-//      PRINT ("dis: trail_pop: stack.back:ind %d", stack.back().e->flags.ind);
-//   else
-//      PRINT ("dis: trail_pop: empty disset");
    PRINT (" dis: trail_pop");
 
    while (idx < top_idx) // Voi nhung event in trail (idx < top_idx), remove e khoi D vi moi e in trail: e < e' with e'in D
    {
       ASSERT (idx == top_idx - 1);
-//      ASSERT (stack.back().e->flags.ind); // Need to set_flags for all events in disset
+//      ASSERT (stack.back().e->flags.ind);
+
+//      ASSERT ( inD(stack.back().e) ); // Thuc ra cai nay vo nghia
       unjust_remove (&stack.back());
 
 //      omp_set_lock(&stack.back().e->elock); // co the ko can vi set locks cho tat ca event in D bang set_flags
@@ -409,7 +410,7 @@ void Disset::trail_pop (int idx)
 
 //      DEBUG ("c15u: disset: removing %08x", stack.back().e->uid());
       PRINT (" dis: trail_pop removing %08x", stack.back().e->uid());
-      stack.pop_back ();
+      stack.pop_back (); // cho nay moi loai bo event khoi D
       top_idx = stack.size() ? stack.back().idx : -1;
    }
 
@@ -426,8 +427,8 @@ void Disset::trail_pop (int idx)
       PRINT (" dis: trail_pop: un-justifying %08x", just_peek()->e->uid());
       unjust_add (just_pop ());
       top_disabler = just_isempty () ? -1 : just_peek()->disabler;
-//      PRINT ("Now idx %d top_disabler  %d", idx, top_disabler);
    }
+   PRINT ("dis: trail_pop: Done");
 }
 
 bool Disset::intersects_with (const Event *e) const
@@ -444,4 +445,14 @@ bool Disset::intersects_with (const Cut &c) const
    for (i = 0; i < c.num_procs(); i++)
       if (c[i] and intersects_with (c[i])) return true;
    return false;
+}
+
+int Disset::inD (const Event *e) const
+{
+   for (auto &ele: stack)
+      {
+         if (ele.e == e)
+            return 1;
+      }
+   return 0;
 }

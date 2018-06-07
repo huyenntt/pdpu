@@ -123,6 +123,8 @@ public:
    /// configuration denoted by the cut c
    inline bool intersects_with (const Cut &c) const;
 
+   inline int inD (const Event *e) const;
+
    void set_flags();
    void unset_flags();
 
