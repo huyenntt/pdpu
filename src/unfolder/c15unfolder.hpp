@@ -410,9 +410,10 @@ bool C15unfolder::stream_to_events
 
       case RT_THJOIN :
          PRINT ("JOIN");
+         //         omp_set_lock(&ulock);
          e->flags.crb = 1;
          ee = c[pidmap.get(it.id())];
-//         omp_set_lock(&ulock);
+
             e = u.event ({.type = ActionType::THJOIN, .val = pidmap.get(it.id())}, e, ee);
 //         omp_unset_lock(&ulock);
 

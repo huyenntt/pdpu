@@ -342,9 +342,17 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 
      // Thuc ra stream to events cung chua can dung den flags.ind
      // Ham nay lam viec chu yeu voi unfolding -> Can lock
-//      omp_set_lock(&ulock);
+//     if (omp_test_lock(&ulock))
+//     {
+//        PRINT ("Lock is available");
+//         omp_set_lock(&ulock);
+//     }
+//     else
+//        PRINT ("Cannot achieve ulock");
+
+      omp_set_lock(&ulock);
          b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec); // Phai xu ly voi d,c của task-> DONE!
-//      omp_unset_lock(&ulock);
+      omp_unset_lock(&ulock);
       // b could be false because of SSBs or defects - TAM BO HIEN THI THONG TIN CHO DE THEO DOI CAC THONG TIN KHAC
 //        PRINT ("c15u: explore: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
        #ifdef VERB_LEVEL_TRACE
@@ -371,6 +379,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //        tsk->dis.dump();
 //      #pragma omp critical
 //      {
+
        while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
        {
           e = tsk->trail.pop ();
@@ -381,7 +390,12 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 
           tsk->conf.unfire (e);
 
-          tsk->dis.set_flags();
+//          if (omp_test_lock(&ulock))
+//             omp_set_lock(&ulock);
+//          else
+//             PRINT ("Cannot achieve ulock");
+
+//          tsk->dis.set_flags();
 //           PRINT ("Make sure that all events in disset are set flags.ind");
           tsk->dis.trail_pop (tsk->trail.size ()); // Hàm này dùng flags.ind!!! Ma ham nay de lam gi quen roi
 //           tsk->dis.unset_flags();
@@ -439,6 +453,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
           counters.ssbs += tsk->dis.ssb_count;
        } // end of while trail
 
+//      omp_unset_lock(&ulock);
       PRINT ("c15: explore: stop backtracking==========================");
        // if we exhausted the time cap, we stop
   // statistics (all for c15unfolder) - Minh can xem lai cho tong ket thong tin 1 chut
@@ -464,7 +479,7 @@ void C15unfolder::explore_para ()
 
 //   tsk = new Task(replay, d, j, t, c);
 //   tsk = new Task(d, j, t, c);
-   omp_set_num_threads(1);
+   omp_set_num_threads(3);
    #pragma omp parallel firstprivate(tsk)
    {
       #pragma omp single
@@ -477,7 +492,7 @@ void C15unfolder::explore_para ()
             explore_one_maxconfig(tsk);
 //         }
       } // end of single
-      #pragma omp taskwait
+//      #pragma omp taskwait
    } // end of parallel
 
 

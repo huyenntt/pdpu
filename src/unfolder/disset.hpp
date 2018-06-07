@@ -302,13 +302,13 @@ void Disset::add (Event *e, int idx)
 
    ASSERT (e);
 //   PRINT ("Dis: add: ");
-   ASSERT (!e->flags.ind); // e is not in D yet
+//   ASSERT (!e->flags.ind); // e is not in D yet
    ASSERT (idx >= 0);
    ASSERT (idx >= top_idx);
    if (stack.size() >= stack.capacity())
       throw std::out_of_range ("Dis: capacity exceeded");
 
-   e->flags.ind = 1;
+//   e->flags.ind = 1;
 //   PRINT ("Dis: add: e->flags.ind after %d",e->flags.ind);
    stack.push_back ({.e = e, .idx = idx, .disabler = -1});
    unjust_add (&stack.back()); // Loi o day
@@ -323,9 +323,9 @@ void Disset::unadd ()
 
    ASSERT (stack.size ());
    ASSERT (unjust == &stack.back());
-   ASSERT (stack.back().e->flags.ind);
+//   ASSERT (stack.back().e->flags.ind);
 
-   stack.back().e->flags.ind = 0;
+//   stack.back().e->flags.ind = 0;
    unjust_remove_head ();
    stack.pop_back ();
    top_idx = stack.size() ? stack.back().idx : -1;
@@ -400,12 +400,12 @@ void Disset::trail_pop (int idx)
    while (idx < top_idx) // Voi nhung event in trail (idx < top_idx), remove e khoi D vi moi e in trail: e < e' with e'in D
    {
       ASSERT (idx == top_idx - 1);
-      ASSERT (stack.back().e->flags.ind); // Need to set_flags for all events in disset
+//      ASSERT (stack.back().e->flags.ind); // Need to set_flags for all events in disset
       unjust_remove (&stack.back());
 
-      omp_set_lock(&stack.back().e->elock); // co the ko can vi set locks cho tat ca event in D bang set_flags
-         stack.back().e->flags.ind = 0;
-      omp_unset_lock(&stack.back().e->elock);
+//      omp_set_lock(&stack.back().e->elock); // co the ko can vi set locks cho tat ca event in D bang set_flags
+//         stack.back().e->flags.ind = 0;
+//      omp_unset_lock(&stack.back().e->elock);
 
 //      DEBUG ("c15u: disset: removing %08x", stack.back().e->uid());
       PRINT (" dis: trail_pop removing %08x", stack.back().e->uid());

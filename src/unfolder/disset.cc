@@ -27,23 +27,30 @@ void Disset:: set_flags()
 //         unjust->e->flags.ind = 1;
 //      omp_unset_lock(&unjust->e->elock);
 //   }
-      omp_set_lock(&stack.back().e->elock);
-          stack.back().e->flags.ind = 0;
+//      omp_set_lock(&stack.back().e->elock);
+//          stack.back().e->flags.ind = 0;
 //      omp_unset_lock(&stack.back()->elock);
+          for (auto &ele : stack)
+            {
+//                omp_set_lock(&ele.e->elock);
+                   ele.e->flags.ind = 1;
+//                omp_unset_lock(&ele.e->elock);
+            }
 }
 
 void Disset:: unset_flags()
 {
 //   PRINT ("disset: unset_flags: ...");
-//   for (auto &ele : stack)
-//   {
+
+   for (auto &ele : stack)
+   {
 //       omp_set_lock(&ele.e->elock);
-//          ele.e->flags.ind = 0;
+          ele.e->flags.ind = 0;
 //       omp_unset_lock(&ele.e->elock);
-//   }
+   }
 //    omp_set_lock(&stack.back()->elock);
-       stack.back().e->flags.ind = 0;
-    omp_unset_lock(&stack.back().e->elock);
+//       stack.back().e->flags.ind = 0;
+//    omp_unset_lock(&stack.back().e->elock);
 
 //   if (unjust)
 //   {
