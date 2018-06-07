@@ -309,19 +309,21 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
    replay.build_from (tsk->trail, tsk->conf, tsk->add);
    PRINT ("replay: %s", replay.str().c_str());
 
-   unfolder->_set_replay_sleepset(replay, tsk->dis, tsk->add); // Cho nay chua the hien add
+   unfolder->_set_replay_sleepset(replay, tsk->dis, tsk->add);
    PRINT ("c15: explore: call run from steroids");
    unfolder->_exec->run();
-
-   // if requested, record the replay sequence
-   if (record_replays) replays.push_back (replay);
 
    // Get a trace from stream
    stid::action_streamt s (unfolder->_exec->get_trace ());
 
-     counters.runs++;
+   omp_set_lock(&ulock);
+     // if requested, record the replay sequence
+     if (record_replays) replays.push_back (replay);
+           counters.runs++;
      i = s.get_rt()->trace.num_ths;
-     if (counters.stid_threads < i) counters.stid_threads = i;
+     if (counters.stid_threads < i)
+        counters.stid_threads = i;
+   omp_unset_lock(&ulock);
 
      s.print ();
 //      tsk->trail.dump();
@@ -364,21 +366,16 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 
        // add conflicting extensions
        PRINT ("c15: explore: compute cex");
-       compute_cex (tsk->conf, &e);  // Truy cap den unfolding cuar C15unfolder, lock se dung ben trong ham
+          compute_cex (tsk->conf, &e);  // Truy cap den unfolding cuar C15unfolder, lock se dung ben trong ham
 
-       counters.avg_max_trail_size += tsk->trail.size(); //???
-
+       omp_set_lock(&ulock);
+          counters.avg_max_trail_size += tsk->trail.size(); //???
+       omp_unset_lock(&ulock);
        // backtrack until we find some right subtree to explore
 //        DEBUG ("");
        PRINT("c15: explore: backtrach the trail============================");
 
-//          if (last_old_trail)
-//             PRINT ("c15: explore: last-event_trail: %s", last_old_trail->str().c_str() );
-
-//        PRINT ("c15: explore: after set flags: ");
 //        tsk->dis.dump();
-//      #pragma omp critical
-//      {
 
        while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
        {
@@ -390,14 +387,10 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 
           tsk->conf.unfire (e);
 
-//          if (omp_test_lock(&ulock))
-//             omp_set_lock(&ulock);
-//          else
-//             PRINT ("Cannot achieve ulock");
-
 //          tsk->dis.set_flags();
 //           PRINT ("Make sure that all events in disset are set flags.ind");
-          tsk->dis.trail_pop (tsk->trail.size ()); // Hàm này dùng flags.ind!!! Ma ham nay de lam gi quen roi
+
+          tsk->dis.trail_pop (tsk->trail.size ());
 //           tsk->dis.unset_flags();
           // skip searching for alternatives if we exceed the number of allowed
           // context switches
@@ -406,7 +399,9 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
           if (tsk->trail.nr_context_switches() >= max_context_switches) continue;
 
           // check for alternatives
-          counters.alt.calls++;
+          omp_set_lock(&ulock);
+             counters.alt.calls++;
+          omp_unset_lock(&ulock);
           if (! unfolder->might_find_alternative (tsk->conf, tsk->dis, e))
           {
              PRINT ("c15: epxplore: no possiblility to get an alternative");
@@ -433,14 +428,12 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
                 {
                    explore_one_maxconfig(ntsk);
                 }
-                PRINT ("c15: explore: new task inserted in tasks");
-//                tasks.back().dump(); // Den cho nay ind = -1
            } // end of if
           else
              PRINT ("c15: epxplore: no alt found");
 
           tsk->dis.unadd (); // Chi co duy nhat 1 event cuoi cung tro ve 0.
-          tsk->dis.unset_flags();
+//          tsk->dis.unset_flags();
 
 //             if (counters.runs % 10 == 0 and timeout)
 //                if (time(nullptr) - start_time > timeout)
@@ -450,10 +443,11 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //                }
 
 //         } // end of critical
-          counters.ssbs += tsk->dis.ssb_count;
+          omp_set_lock(&ulock);
+             counters.ssbs += tsk->dis.ssb_count;
+          omp_unset_lock(&ulock);
        } // end of while trail
 
-//      omp_unset_lock(&ulock);
       PRINT ("c15: explore: stop backtracking==========================");
        // if we exhausted the time cap, we stop
   // statistics (all for c15unfolder) - Minh can xem lai cho tong ket thong tin 1 chut
@@ -477,16 +471,15 @@ void C15unfolder::explore_para ()
    report_init (); // init report trong c15
    start = time (nullptr);
 
-//   tsk = new Task(replay, d, j, t, c);
 //   tsk = new Task(d, j, t, c);
-   omp_set_num_threads(3);
+   omp_set_num_threads(5);
    #pragma omp parallel firstprivate(tsk)
    {
       #pragma omp single
       {
          PRINT ("THREAddddddddddddddddd: %d", omp_get_thread_num());
 //         PRINT ("c15: explore: task outside the omp task");
-         tsk->dump();
+//         tsk->dump();
 //         #pragma omp task firstprivate(tsk)
 //         {
             explore_one_maxconfig(tsk);
@@ -495,6 +488,7 @@ void C15unfolder::explore_para ()
 //      #pragma omp taskwait
    } // end of parallel
 
+   #pragma omp taskwait
 
    // statistics (all for c15unfolder)
 //   counters.ssbs = tsk->dis.ssb_count;
@@ -502,7 +496,6 @@ void C15unfolder::explore_para ()
    counters.avg_max_trail_size /= counters.runs;
    PRINT ("c15u: explore: done!");
    ASSERT (counters.ssbs == 0 or altalgo != Altalgo::OPTIMAL);
-//   omp_destroy_lock(&tlock);
 }
 //
 ////===========================parallel exploration============================
@@ -591,7 +584,7 @@ void C15unfolder:: explore_seq()
    // exploration are fixed
    report_init (); // init report trong c15
 
-//   int tcount = 0;
+   int tcount = 0;
    PRINT ("c15: explore: initialize the queue");
    tasks.emplace(d, j, t, c); // first task with all empty, // J inlucdes C, so C is unnecessary
    while (!tasks.empty())
@@ -670,7 +663,7 @@ void C15unfolder:: explore_seq()
 
         // Lock all events in disset and set flags.ind = 1
         tsk->dis.dump();
-        tsk->dis.set_flags();
+//        tsk->dis.set_flags();
 //        PRINT ("c15: explore: after set flags: ");
 //        tsk->dis.dump();
         while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
@@ -714,6 +707,7 @@ void C15unfolder:: explore_seq()
                  // Phai set sleep set va replay moi cho executor o day
 //                 tsk->dis.dump();
                  tasks.emplace (tsk->dis, tsk->add, tsk->trail, tsk->conf);
+                 tcount++;
 //                 tasks.emplace (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
                  PRINT ("c15: explore: new task inserted in tasks");
                  tasks.back().dump(); // Den cho nay ind = -1
@@ -737,7 +731,7 @@ void C15unfolder:: explore_seq()
 
        // Unlock all events in disset and set flags.ind back to 0
         tsk->dis.dump();
-       tsk->dis.unset_flags();
+//       tsk->dis.unset_flags();
        PRINT ("c15: explore: stop backtracking==========================");
 
         // if we exhausted the time cap, we stop
@@ -746,7 +740,7 @@ void C15unfolder:: explore_seq()
 
    counters.maxconfs = counters.runs - counters.ssbs;
    counters.avg_max_trail_size /= counters.runs;
-   PRINT ("c15u: explore: done!");
+   PRINT ("c15u: explore: done!, number of tasks: %d",tcount);
    ASSERT (counters.ssbs == 0 or altalgo != Altalgo::OPTIMAL); // Xem lai cho nay
 }
 //void C15unfolder::explore_origin ()
@@ -916,9 +910,9 @@ void C15unfolder::compute_cex_lock (Event *e, Event **head)
       ASSERT (!em or em->action.type == ActionType::MTXUNLK);
 
       // 7. (action, ep, em) is a possibly new event
-//      omp_set_lock(&ulock);
+      omp_set_lock(&ulock);
          ee = u.event (e->action, ep, em);
-//      omp_unset_lock(&ulock);
+      omp_unset_lock(&ulock);
 
 //      PRINT ("c15u: cex-lock:  new cex: %s", ee->str().c_str());
 

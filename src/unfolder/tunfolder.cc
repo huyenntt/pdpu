@@ -486,7 +486,11 @@ bool Tunfolder::find_alternative_only_last (const Config &c, const Disset &d, Cu
 #ifdef CONFIG_STATS_DETAILED
       count++;
 #endif
-      if (!ee->flags.ind and !ee->in_cfl_with (c) and !d.intersects_with (ee))
+
+      // Van de o day nua ne
+
+//      if (!ee->flags.ind and !ee->in_cfl_with (c) and !d.intersects_with (ee))
+      if ( !d.inD (ee) and !ee->in_cfl_with (c) and !d.intersects_with (ee))
       {
          j = c;
          j.unionn (ee);
@@ -502,7 +506,7 @@ bool Tunfolder::find_alternative_only_last (const Config &c, const Disset &d, Cu
 
 bool Tunfolder::find_alternative_kpartial (const Config &c, const Disset &d, Cut &j)
 {
-   // We do an exahustive search for alternatives to D after C, we will find one
+   // We do an exhaustive search for alternatives to D after C, we will find one
    // iff one exists. We use a comb that has one spike per unjustified event D.
    // Each spike is made out of the immediate conflicts of that event in D. The
    // unjustified events in D are all enabled in C, none of them is in cex(C).
@@ -552,7 +556,8 @@ bool Tunfolder::find_alternative_kpartial (const Config &c, const Disset &d, Cut
       i = 0;
       while (i < spike.size())
       {
-         if (spike[i]->flags.ind or spike[i]->in_cfl_with(c) or
+//         if (spike[i]->flags.ind or spike[i]->in_cfl_with(c) or
+         if (d.inD(spike[i]) or spike[i]->in_cfl_with(c) or
                (alt_algo != Altalgo::OPTIMAL and d.intersects_with (spike[i])))
          {
             spike[i] = spike.back();
@@ -633,7 +638,8 @@ bool Tunfolder::find_alternative_sdpor (Config &c, const Disset &d, Cut &j, Unfo
    ASSERT (! e->in_cfl_with (c));
 
    // and that it is not in D !!
-   ASSERT (! e->flags.ind);
+//   ASSERT (! e->flags.ind);
+   ASSERT (! d.inD(e));
 
    // our alternative is J := C \cup {e}
    j = c;

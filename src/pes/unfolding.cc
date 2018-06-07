@@ -245,12 +245,12 @@ void Unfolding::print_dot (std::ofstream &fs, unsigned col, std::string &&msg)
             case ActionType::MTXLOCK:
                bcolor = "salmon";
 //               var = fmt ("%p ", e.action.addr);
-               var = fmt ("offset %zu", e.action.offset);
+               var = fmt ("offset %-#16lx", e.action.offset);
                break;
             case ActionType::MTXUNLK:
                bcolor = "lightblue";
 //               var = fmt ("%p ", e.action.addr);
-               var = fmt ("offset %zu", e.action.offset);
+               var = fmt ("offset %-#16lx", e.action.offset);
                break;
             case ActionType::THSTART:
                bcolor = "greenyellow";

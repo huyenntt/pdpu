@@ -273,7 +273,8 @@ bool C15unfolder::stream_to_events
       ASSERT (c.empty());
       e = u.event (nullptr); // bottom
       c.fire (e);
-      ASSERT (!e->flags.ind);
+//      ASSERT (!e->flags.ind);
+      ASSERT (!d->inD(e));
       if (d) d->trail_push (e, t->size()); // sao lai add bottom vào D nhỉ? Luc nay chac chan chua co D
       if (t) t->push(e);
    }
