@@ -51,6 +51,8 @@ C15unfolder::C15unfolder (Altalgo a, unsigned kbound, unsigned maxcts) :
 
    // Initialize the lock for the unfolding
    omp_init_lock(&ulock);
+   omp_init_lock(&clock);
+
 }
 
 C15unfolder::~C15unfolder ()
@@ -59,6 +61,7 @@ C15unfolder::~C15unfolder ()
 
    // Destroy the lock of the unfolding
    omp_destroy_lock(&ulock);
+   omp_destroy_lock(&clock);
 }
 
 stid::ExecutorConfig C15unfolder::prepare_executor_config () const
@@ -316,14 +319,14 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
    // Get a trace from stream
    stid::action_streamt s (unfolder->_exec->get_trace ());
 
-   omp_set_lock(&ulock);
+   omp_set_lock(&clock);
      // if requested, record the replay sequence
      if (record_replays) replays.push_back (replay);
            counters.runs++;
      i = s.get_rt()->trace.num_ths;
      if (counters.stid_threads < i)
         counters.stid_threads = i;
-   omp_unset_lock(&ulock);
+   omp_unset_lock(&clock);
 
      s.print ();
 //      tsk->trail.dump();
@@ -342,16 +345,6 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //         PRINT ("empty trail-> last evt is bottom");
 //        PRINT ("c15: explore: old trail size: %d trail size: %zu", last_trail_size, tsk->trail.size());
 
-     // Thuc ra stream to events cung chua can dung den flags.ind
-     // Ham nay lam viec chu yeu voi unfolding -> Can lock
-//     if (omp_test_lock(&ulock))
-//     {
-//        PRINT ("Lock is available");
-//         omp_set_lock(&ulock);
-//     }
-//     else
-//        PRINT ("Cannot achieve ulock");
-
       omp_set_lock(&ulock);
          b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec); // Phai xu ly voi d,c của task-> DONE!
       omp_unset_lock(&ulock);
@@ -368,16 +361,17 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
        PRINT ("c15: explore: compute cex");
           compute_cex (tsk->conf, &e);  // Truy cap den unfolding cuar C15unfolder, lock se dung ben trong ham
 
-       omp_set_lock(&ulock);
+       omp_set_lock(&clock);
           counters.avg_max_trail_size += tsk->trail.size(); //???
-       omp_unset_lock(&ulock);
+       omp_unset_lock(&clock);
        // backtrack until we find some right subtree to explore
 //        DEBUG ("");
        PRINT("c15: explore: backtrach the trail============================");
 
 //        tsk->dis.dump();
 
-       while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
+//       while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
+       while (tsk->trail.size() > 0)
        {
           e = tsk->trail.pop ();
              // pop last event out of the trail/config; indicate so to the disset
@@ -386,12 +380,8 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
                     e->str().c_str());
 
           tsk->conf.unfire (e);
-
-//          tsk->dis.set_flags();
-//           PRINT ("Make sure that all events in disset are set flags.ind");
-
           tsk->dis.trail_pop (tsk->trail.size ());
-//           tsk->dis.unset_flags();
+
           // skip searching for alternatives if we exceed the number of allowed
           // context switches
           if (tsk->trail.nr_context_switches() >= max_context_switches)
@@ -399,9 +389,10 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
           if (tsk->trail.nr_context_switches() >= max_context_switches) continue;
 
           // check for alternatives
-          omp_set_lock(&ulock);
+          omp_set_lock(&clock);
              counters.alt.calls++;
-          omp_unset_lock(&ulock);
+          omp_unset_lock(&clock);
+
           if (! unfolder->might_find_alternative (tsk->conf, tsk->dis, e))
           {
              PRINT ("c15: epxplore: no possiblility to get an alternative");
@@ -433,20 +424,12 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
              PRINT ("c15: epxplore: no alt found");
 
           tsk->dis.unadd (); // Chi co duy nhat 1 event cuoi cung tro ve 0.
-//          tsk->dis.unset_flags();
 
-//             if (counters.runs % 10 == 0 and timeout)
-//                if (time(nullptr) - start_time > timeout)
-//                {
-//                    counters.timeout = true;
-//                    break;
-//                }
-
-//         } // end of critical
-          omp_set_lock(&ulock);
-             counters.ssbs += tsk->dis.ssb_count;
-          omp_unset_lock(&ulock);
        } // end of while trail
+
+       omp_set_lock(&clock);
+          counters.ssbs += tsk->dis.ssb_count;
+       omp_unset_lock(&clock);
 
       PRINT ("c15: explore: stop backtracking==========================");
        // if we exhausted the time cap, we stop
@@ -460,19 +443,18 @@ void C15unfolder::explore_para ()
    Config c (Unfolding::MAX_PROC);
    Cut j (Unfolding::MAX_PROC);
 //   Replay replay (u);
-//   int tcount = 0;
    Task *tsk = new Task(d,j,t,c);
 //   std::queue<Task> tasks;
-   time_t start;
+   time_t start_time;
 
    //   PRINT ("c15: explore: Replay at the beginning: %s", replay.str().c_str());
    // initialize the defect report now that all settings for this verification
    // exploration are fixed
    report_init (); // init report trong c15
-   start = time (nullptr);
+   start_time = time (nullptr);
 
 //   tsk = new Task(d, j, t, c);
-   omp_set_num_threads(5);
+   omp_set_num_threads(10);
    #pragma omp parallel firstprivate(tsk)
    {
       #pragma omp single
@@ -485,10 +467,18 @@ void C15unfolder::explore_para ()
             explore_one_maxconfig(tsk);
 //         }
       } // end of single
-//      #pragma omp taskwait
    } // end of parallel
 
-   #pragma omp taskwait
+//      omp_set_lock(&clock);
+//      if (counters.runs % 10 == 0 and timeout)
+//         if (time(nullptr) - start_time > timeout)
+//         {
+//             counters.timeout = true;
+//             break;
+//         }
+//      omp_unset_lock(&clock);
+
+//   #pragma omp taskwait
 
    // statistics (all for c15unfolder)
 //   counters.ssbs = tsk->dis.ssb_count;
@@ -497,70 +487,6 @@ void C15unfolder::explore_para ()
    PRINT ("c15u: explore: done!");
    ASSERT (counters.ssbs == 0 or altalgo != Altalgo::OPTIMAL);
 }
-//
-////===========================parallel exploration============================
-//void C15unfolder::explore_para1 () // this for new parallel implementatin
-//{
-//   bool b;
-//   Trail t;
-//   Disset d;
-//   Config c (Unfolding::MAX_PROC);
-//   Cut j (Unfolding::MAX_PROC);
-//   Replay replay (u);
-//   Task *tsk;
-//   std::queue<Task> tasks;
-//   omp_lock_t tlock;
-//
-//   time_t start;
-//
-//   //   PRINT ("c15: explore: Replay at the beginning: %s", replay.str().c_str());
-//   // initialize the defect report now that all settings for this verification
-//   // exploration are fixed
-//   report_init (); // init report trong c15
-//   start = time (nullptr);
-////   omp_init_lock(&tlock);
-//
-//   PRINT ("c15: explore: initialize the queue");
-//   // Tai sao cho nay 2 lan goi disset copy constructor -> Done
-//   tasks.emplace (d, j, t, c); // first task with all empty
-////   tsk = new Task(d, j, t, c);
-//
-//   omp_set_num_threads(10);
-//
-//   #pragma omp parallel
-//   {
-//      #pragma omp single
-//      {
-////         PRINT ("explore_one_mc: THREAD: %d", omp_get_thread_num());
-//         while (!tasks.empty())
-//         {
-//            PRINT ("c15::explore:: tasks.size: %lu", tasks.size());
-//
-//            PRINT ("c15: explore: copy and pop task from the front of queue");
-////            omp_set_lock(&tlock);
-//               tsk = new Task(std::move(tasks.front()));
-//               tasks.pop();
-////            omp_unset_lock(&tlock);
-//            tsk->dump();
-////            PRINT ("c15::explore:: tasks.size: %lu", tasks.size());
-//            #pragma omp task shared(tasks) firstprivate(tsk)
-//            {
-//               explore_one_maxconfig(tsk,tasks);
-//            }
-//         } // end of while
-//      } // end of single
-//   } // end of parallel
-//
-//   #pragma omp taskwait
-//   // statistics (all for c15unfolder)
-////   counters.ssbs = tsk->dis.ssb_count; // Cai nay chac nen dung trong task
-//   counters.maxconfs = counters.runs - counters.ssbs;
-//   counters.avg_max_trail_size /= counters.runs;
-//   PRINT ("c15u: explore: done!");
-//   ASSERT (counters.ssbs == 0 or altalgo != Altalgo::OPTIMAL);
-////   omp_destroy_lock(&tlock);
-//}
-
 //===========================explore sequence=================================
 void C15unfolder:: explore_seq()
 {
@@ -618,14 +544,13 @@ void C15unfolder:: explore_seq()
 
       s.print ();
 //      tsk->trail.dump();
-      /* đến đây vẫn chưa dùng gì đến flags.ind của các events trong D*/
       PRINT ("c15u: explore: Stream to events:");
-     // Ham nay lam viec chu yeu voi unfolding -> Can lock
+
       /*
        * We need to store old trail here, or just top_idx of trail to avoid backtracking the events which are
        * considered for alternatives before.
        */
-      Event * last_old_trail = tsk->trail.empty() ? nullptr : tsk->trail.peek();
+//      Event * last_old_trail = tsk->trail.empty() ? nullptr : tsk->trail.peek();
       int last_trail_size = tsk->trail.size();
 
 //      if (last_old_trail)
@@ -633,17 +558,16 @@ void C15unfolder:: explore_seq()
 //      else
 //         PRINT ("empty trail-> last evt is bottom");
 
-      // Thuc ra stream to events cung chua can dung den flags.ind
-       b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec); // Phai xu ly voi d,c của task-> DONE!
+       b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec);
 
-       // b could be false because of SSBs or defects - TAM BO HIEN THI THONG TIN CHO DE THEO DOI CAC THONG TIN KHAC
+       // b could be false because of SSBs or defects
 //        PRINT ("c15u: explore: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-        #ifdef VERB_LEVEL_TRACE
-           if (verb_trace)
-              tsk->trail.dump2 (fmt ("c15u: explore: %s: ", explore_stat(tsk->trail,tsk->dis).c_str()).c_str());
+//        #ifdef VERB_LEVEL_TRACE
+//           if (verb_trace)
+//              tsk->trail.dump2 (fmt ("c15u: explore: %s: ", explore_stat(tsk->trail,tsk->dis).c_str()).c_str());
 //           if (verb_debug) tsk->conf.dump ();
 //           if (verb_debug) tsk->dis.dump ();
-        #endif
+//        #endif
 
         // add conflicting extensions
         PRINT ("c15: explore: compute cex");
@@ -658,14 +582,11 @@ void C15unfolder:: explore_seq()
 //        while (tsk->trail.size() and (tsk->trail.peek() != last_old_trail))
         PRINT ("c15: explore: old trail size: %d trail size: %zu", last_trail_size, tsk->trail.size());
 
-        if (last_old_trail)
-           PRINT ("c15: explore: last-event_trail: %s", last_old_trail->str().c_str() );
+//        if (last_old_trail)
+//           PRINT ("c15: explore: last-event_trail: %s", last_old_trail->str().c_str() );
 
         // Lock all events in disset and set flags.ind = 1
         tsk->dis.dump();
-//        tsk->dis.set_flags();
-//        PRINT ("c15: explore: after set flags: ");
-//        tsk->dis.dump();
         while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
         {
            e = tsk->trail.pop ();
@@ -676,9 +597,8 @@ void C15unfolder:: explore_seq()
 
            tsk->conf.unfire (e);
 
-//           PRINT ("Make sure that all events in disset are set flags.ind");
            tsk->dis.trail_pop (tsk->trail.size ()); // Hàm này dùng flags.ind!!! Ma ham nay de lam gi quen roi
-//           tsk->dis.unset_flags();
+
            // skip searching for alternatives if we exceed the number of allowed
            // context switches
            if (tsk->trail.nr_context_switches() >= max_context_switches)
@@ -726,7 +646,6 @@ void C15unfolder:: explore_seq()
                   counters.timeout = true;
                   break;
               }
-           counters.ssbs += tsk->dis.ssb_count;
         } // end of while trail
 
        // Unlock all events in disset and set flags.ind back to 0
@@ -734,6 +653,7 @@ void C15unfolder:: explore_seq()
 //       tsk->dis.unset_flags();
        PRINT ("c15: explore: stop backtracking==========================");
 
+       counters.ssbs += tsk->dis.ssb_count;
         // if we exhausted the time cap, we stop
    } // End of while tasks
    // statistics (all for c15unfolder) - Minh can xem lai cho tong ket thong tin 1 chut

@@ -598,8 +598,8 @@ int main (int argc, char **argv)
 
       // build entire unfolding
 //      PRINT ("dpu: por: starting POR analysis ...Thread %d", omp_get_thread_num());
-      unf->explore_para ();
-//      unf->explore_seq ();
+//      unf->explore_para ();
+      unf->explore_seq ();
 //      unf->explore_origin();
 
       if (unf->counters.timeout)

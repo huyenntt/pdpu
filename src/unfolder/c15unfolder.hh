@@ -73,7 +73,8 @@ protected:
    /// When computing k-partial alternatives, the value of k
    unsigned kpartial_bound;
 
-   omp_lock_t ulock;
+   omp_lock_t ulock; // unfolding lock
+   omp_lock_t clock; // counters lock
 
 private:
    /// The comb data structure
