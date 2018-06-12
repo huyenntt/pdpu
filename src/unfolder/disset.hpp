@@ -15,7 +15,7 @@ Disset:: Disset (const Disset &other) :
    unjust (other.unjust), // Xu ly phia duoi
    top_disabler (other.top_disabler),
    top_idx (other.top_idx),
-   ssb_count (other.ssb_count)
+   ssb_count (0) // set to 0 for new start
 {
 //   PRINT ("Dis:cctor:");
    stack.reserve (CAPACITY);
@@ -109,14 +109,11 @@ Disset:: Disset (const Disset &other) :
 }
 // Thuc ra cai nay ko giup ich gi nhieu. Van phai copy stack va set up lai toan bo các elee trong stack.
 Disset:: Disset (const Disset &&other) :
-//   stack (std::move(other.stack)),
    just (std::move(other.just)),
    unjust (std::move(other.unjust)), // Xu ly phia duoi
    top_disabler (std::move(other.top_disabler)),
    top_idx (std::move(other.top_idx)),
-//   justified (std::move(other.justified)),
-//   unjustified (std::move(other.unjustified)), // ko can 2 cau lenh nay
-   ssb_count (std::move(other.ssb_count))
+   ssb_count (0) // Dat lai count cho disset moi
 {
 //   PRINT ("dis: mctor: stack");
    stack.reserve (CAPACITY);
@@ -158,7 +155,7 @@ Disset:: Disset (const Disset &&other) :
 //      PRINT ("dis: mctor: set unjustified list");
 /*
  * Unjust is head but it will be the last event in stack.
- * unjust->next points to the event added in the unjustied list.
+ * unjust->next points to the event previously added in the unjustified list.
  */
       Elem *ele, *el;
 
@@ -197,8 +194,8 @@ Disset:: Disset (const Disset &&other) :
             ele = ele->next;
          }
 
-//         for (auto it = justified.begin(), end = justified.end();
-//                           it != end; ++it) PRINT ("%p ", it);
+//      for (auto it = justified.begin(), end = justified.end();
+//                        it != end; ++it) PRINT ("%p ", it);
       }
 
 
@@ -344,6 +341,7 @@ bool Disset::trail_push (Event *e, int idx)
    // if we are pushing to the trail an event that is already in D, we got a
    // sleep-set block execution, and we should stop it
 //   if (e->flags.ind)
+   PRINT ("inD: %d===================================", inD(e));
    if (inD(e))
    {
       ssb_count++;

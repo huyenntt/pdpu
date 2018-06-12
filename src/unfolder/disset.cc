@@ -7,35 +7,12 @@ namespace dpu
 
 void Disset:: set_flags()
 {
-//   PRINT ("disset: set_flags: ...");
-//   if (!stack.empty())
-//   {
-////      omp_set_lock(&stack.back().e->elock);
-//         stack.back().e->flags.ind = 1;
-////      omp_unset_lock(&stack.back().e->elock);
-//   }
-//   for (auto &ele : stack)
-//   {
-//      omp_set_lock(&ele.e->elock); // lock event in disset until we finish the computation of alternative
-//         ele.e->flags.ind = 1;
+   for (auto &ele : stack)
+   {
+//      omp_set_lock(&ele.e->elock);
+         ele.e->flags.ind = 1;
 //      omp_unset_lock(&ele.e->elock);
-//   }
-   // Only last event added to D needs to be set flags.ind = 1 as it will be changed back later to
-//   if (unjust)
-//   {
-//      omp_set_lock(&unjust->e->elock);
-//         unjust->e->flags.ind = 1;
-//      omp_unset_lock(&unjust->e->elock);
-//   }
-//      omp_set_lock(&stack.back().e->elock);
-//          stack.back().e->flags.ind = 0;
-//      omp_unset_lock(&stack.back()->elock);
-          for (auto &ele : stack)
-            {
-//                omp_set_lock(&ele.e->elock);
-                   ele.e->flags.ind = 1;
-//                omp_unset_lock(&ele.e->elock);
-            }
+   }
 }
 
 void Disset:: unset_flags()
@@ -48,16 +25,6 @@ void Disset:: unset_flags()
           ele.e->flags.ind = 0;
 //       omp_unset_lock(&ele.e->elock);
    }
-//    omp_set_lock(&stack.back()->elock);
-//       stack.back().e->flags.ind = 0;
-//    omp_unset_lock(&stack.back().e->elock);
-
-//   if (unjust)
-//   {
-//      omp_set_lock(&unjust->e->elock);
-//               unjust->e->flags.ind = 0;
-//      omp_unset_lock(&unjust->e->elock);
-//   }
 }
 
 void Disset::dump () const
