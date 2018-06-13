@@ -53,17 +53,17 @@ run2: dist
 	./dist/bin/dpu experiments/cav18/bench/multiprodcon.c -- p main4
 	#$(MAKE) u.svg
 	
-# run with callgrind for benchmarks	
+# run on benchmarks of table 1	
 rundisp: dist
-	./dist/bin/dpu experiments/cav18/bench/dispatcher.c -k3
+	./dist/bin/dpu experiments/cav18/bench/dispatcher.c -k0
 runmpat: dist
-	 ./dist/bin/dpu experiments/cav18/bench/mpat.c -k3
+	 ./dist/bin/dpu experiments/cav18/bench/mpat.c -k0
 runmpc: dist
-	./dist/bin/dpu experiments/cav18/bench/multiprodcon.c -k3 --callgrind
+	./dist/bin/dpu experiments/cav18/bench/multiprodcon.c -k0
 runpi: dist
-	./dist/bin/dpu experiments/cav18/bench/pi/pth_pi_mutex.c -k3 --callgrind
+	./dist/bin/dpu experiments/cav18/bench/pi/pth_pi_mutex.c -k0
 runpol: dist
-	./dist/bin/dpu experiments/cav18/bench/poke.c -k3
+	./dist/bin/dpu experiments/cav18/bench/poke.c -k0
 
 tags :
 	ctags -R --c++-kinds=+p --fields=+K --extra=+q src/ tests/unit/ config.h $(shell llvm-config-$(CONFIG_LLVM_VER) --includedir)
