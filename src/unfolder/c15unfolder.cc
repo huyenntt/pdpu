@@ -370,8 +370,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 
 //        tsk->dis.dump();
 
-//       while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
-       while (tsk->trail.size() > 0)
+       while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
        {
           e = tsk->trail.pop ();
              // pop last event out of the trail/config; indicate so to the disset
@@ -587,6 +586,7 @@ void C15unfolder:: explore_seq()
 
         // Lock all events in disset and set flags.ind = 1
         tsk->dis.dump();
+
         while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
         {
            e = tsk->trail.pop ();
