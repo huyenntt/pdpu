@@ -9,7 +9,7 @@
 #endif
 
 #ifndef PARAM2
-#define PARAM2 5
+#define PARAM2 4
 #endif
 
 #define TASKS   1      // maximum number of tasks processed by a worker
