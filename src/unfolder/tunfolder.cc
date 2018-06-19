@@ -273,18 +273,21 @@ void  Tunfolder:: _set_replay_sleepset (Replay &replay, const Disset &d, const C
      PRINT ("tunf: Set replay and sleep set: set sleep set ");
      _exec->clear_sleepset();
 //     d.dump();
+
+     PRINT ("tunfolder: set sleep set");
      for (auto e : d.unjustified)
      {
         ASSERT (e->action.type == ActionType::MTXLOCK);
+        PRINT ("e: %s", e->str().c_str());
         if (! j.ex_is_cex (e)) // J nay se xem lay o dau?
         {
            tid = replay.pidmap.get(e->pid());
 //           TRACE_ ("r%u (#%u) %p; ", tid, e->pid(), (void*) e->action.addr);
 //           PRINT ("r%u (#%u) %p; ", tid, e->pid(), (void*) e->action.addr);
-//           _exec->add_sleepset (tid, (void*) e->action.addr);
+           _exec->add_sleepset (tid, (void*) e->action.addr);
            /*Phan nay co ve van phai de nguyen*/
 //           DEBUG ("r%u (#%u) %0*x; ", tid, e->pid(), e->action.offset);
-           _exec->add_sleepset (tid, (void*) e->action.offset);
+//           _exec->add_sleepset (tid, (void*) e->action.offset);
         }
      }
      TRACE ("");

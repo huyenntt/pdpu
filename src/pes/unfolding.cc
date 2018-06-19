@@ -220,6 +220,7 @@ void Unfolding::print_dot (std::ofstream &fs, unsigned col, std::string &&msg)
    Process *p;
    std::string var;
    std::vector<Event*> icfls;
+   PRINT ("unf: print_dot");
 
    fs << "digraph {\n";
    fs << " node [shape=\"rectangle\", fontsize=10, style=\"filled\"];\n";
