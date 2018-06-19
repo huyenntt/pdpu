@@ -99,7 +99,7 @@ Event *Unfolding::event (Event *creat)
 }
 
 /// THCREAT(tid) or THEXIT(), one predecessor (in the process)
-Event *Unfolding:: (Action ac, Event *p)
+Event *Unfolding:: event(Action ac, Event *p)
 {
    Event *e;
 
