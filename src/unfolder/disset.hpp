@@ -341,10 +341,11 @@ bool Disset::trail_push (Event *e, int idx)
    // if we are pushing to the trail an event that is already in D, we got a
    // sleep-set block execution, and we should stop it
 //   if (e->flags.ind)
-   PRINT ("inD: %d===================================", inD(e));
+//   PRINT ("inD: %d===================================", inD(e));
    if (inD(e))
    {
       ssb_count++;
+      PRINT ("d.ssb_count %d =================", ssb_count);
 
 #ifdef VERB_LEVEL_TRACE
       unsigned u, j;
