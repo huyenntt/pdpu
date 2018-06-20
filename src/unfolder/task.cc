@@ -15,26 +15,26 @@ namespace dpu{
 //   PRINT ("Task.ctor()");
 //}
 
-//Task:: Task(Replay rpl, const Disset &d, const Cut &j, const Trail &t, const Config &c) :
-//      rep (rpl),
-//      dis (d),
-//      add (j),
-//      trail (t),
-//      conf (c)
-//{
-//   PRINT ("task: ctor: (replay,dis,add, trail)");
-//}
-
-//Task:: Task(int tcount, const Disset &d, const Cut &j, const Trail &t, const Config &c) :
-Task:: Task(const Disset &d, const Cut &j, const Trail &t, const Config &c) :
-//      tskid (tcount),
+Task:: Task(Replay rpl, const Disset &d, const Cut &j, const Trail &t, const Config &c) :
+      rep (rpl),
       dis (d),
       add (j),
       trail (t),
       conf (c)
 {
-//   PRINT ("task: ctor: (dis,add, trail)");
+   PRINT ("task: ctor: (replay,dis,add, trail)");
 }
+
+//Task:: Task(int tcount, const Disset &d, const Cut &j, const Trail &t, const Config &c) :
+//Task:: Task(const Disset &d, const Cut &j, const Trail &t, const Config &c) :
+////      tskid (tcount),
+//      dis (d),
+//      add (j),
+//      trail (t),
+//      conf (c)
+//{
+////   PRINT ("task: ctor: (dis,add, trail)");
+//}
 
 
 //Task:: Task (const Task &&other) :
@@ -46,7 +46,7 @@ Task:: Task(const Disset &d, const Cut &j, const Trail &t, const Config &c) :
 
 Task:: Task (const Task &&other) :
 //      tskid (other.tskid),
-//      rep (std::move(other.rep)),
+      rep (std::move(other.rep)),
       dis (std::move(other.dis)),
       add (std::move(other.add)),
       trail (std::move(other.trail)),
@@ -184,6 +184,16 @@ void Task:: dump()
 //   unfolder._exec->run();
 //}
 
+
+bool Task:: operator== (Task &other)
+{
+//   if (dis == other.dis) && (add == other.add)
+//         return true;
+//   return false;
+   if (rep == other.rep) return true;
+
+   return false;
+}
 } // end of namespace
 
 

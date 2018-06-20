@@ -40,7 +40,7 @@ class Task
 {
 public:
 //   int tskid;
-//   Replay rep;
+   Replay rep;
    Disset dis;
    Cut add;
    Trail trail;
@@ -48,11 +48,12 @@ public:
 
 public:
 //   Task ();
-//   Task (Replay rpl, const Disset &d, const Cut &add, const Trail &t, const Config &c);
+   Task (Replay rpl, const Disset &d, const Cut &add, const Trail &t, const Config &c);
 //   Task (int tcount, const Disset &d, const Cut &add, const Trail &t, const Config &c);
-   Task (const Disset &d, const Cut &add, const Trail &t, const Config &c);
+//   Task (const Disset &d, const Cut &add, const Trail &t, const Config &c);
    Task (const Task &&other);
 //   Task& operator= (Task &&other);
+   bool operator== (Task &other);
    void dump();
 
 };
