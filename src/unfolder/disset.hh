@@ -99,6 +99,7 @@ public:
    inline Disset (const Disset &other);
    inline Disset (const Disset &&other);
 
+
    /// add an event to D, given the event and the index it occupied the trail;
    /// the event will be removed from D whenever either we pop out of the trail
    /// the event at depth idx (this will happen in trail_pop) or when we call
@@ -127,6 +128,8 @@ public:
 
    void set_flags();
    void unset_flags();
+
+   bool operator== (Disset &other);
 
    /// dumps debug information to stdout
    void dump () const;

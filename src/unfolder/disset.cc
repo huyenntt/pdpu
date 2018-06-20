@@ -27,6 +27,22 @@ void Disset:: unset_flags()
    }
 }
 
+bool Disset:: operator== (Disset &other)
+{
+   PRINT ("This disset: ");
+   dump();
+   PRINT ("Other disset:");
+   other.dump();
+   Elem *el,*el1;
+   if (stack.size() != other.stack.size()) return false;
+
+//   for (el = unjust; el; el = el->next)
+//      for (el1 = other.unjust; el1; el1 = el1->next)
+//      if (el->e !=  )
+
+}
+
+
 void Disset::dump () const
 {
    const Elem *e;
