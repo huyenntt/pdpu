@@ -613,7 +613,10 @@ void C15unfolder:: explore_seq()
                  ntsk = new Task (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
                  if (tsk->trail.size() < last_trail_size)
                     if (existed(full_tasks,ntsk))
+                    {
+                       PRINT ("c15: explore_seq: task already exists");
                        continue;
+                    }
 
                  tasks.push(std::move(*ntsk));
                  full_tasks.emplace_back(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
