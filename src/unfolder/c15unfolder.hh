@@ -19,6 +19,7 @@
 #include "unfolder/alt-algorithm.hh"
 #include "unfolder/task.hh"
 #include "unfolder/tunfolder.hh"
+#include "unfolder/task.hh"
 
 #include "defectreport.hh"
 
@@ -109,6 +110,7 @@ public:
 //   void explore_para1 (); // with queue of tasks
 
    void explore_seq();
+   bool existed(std::queue<Task> &full_tasks, Task *ntsk);
 
 //   void explore_origin ();
 

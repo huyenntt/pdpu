@@ -294,6 +294,14 @@ std::unique_ptr<Tunfolder> C15unfolder:: _get_por_analysis () // Lay cac tham so
 //          // if we exhausted the time cap, we stop
 //     // statistics (all for c15unfolder) - Minh can xem lai cho tong ket thong tin 1 chut
 //}
+
+bool C15unfolder:: existed (std::queue<Task> &full_tasks, Task *ntsk)
+{
+   for (auto &t: full_tasks)
+      if (t == *ntsk)
+         return true;
+   return false;
+}
 //===================================
 void C15unfolder::explore_one_maxconfig (Task *tsk)
 {
@@ -309,7 +317,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 
    PRINT ("c15::explore: call get_por_analysis for tunfolder");
    unfolder = _get_por_analysis();
-   replay.build_from (tsk->trail, tsk->conf, tsk->add);
+//   replay.build_from (tsk->trail, tsk->conf, tsk->add);
    PRINT ("replay: %s", replay.str().c_str());
 
    unfolder->_set_replay_sleepset(replay, tsk->dis, tsk->add);
@@ -399,7 +407,9 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
           {
                 // Here we create a new task to explore new branch with the alternative found
                 PRINT ("c15: explore: an alternative found");
-                ntsk = new Task(tsk->dis, tsk->add, tsk->trail, tsk->conf);
+                replay.build_from (tsk->trail, tsk->conf, tsk->add);
+                ntsk = new Task(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
+//                ntsk = new Task(tsk->dis, tsk->add, tsk->trail, tsk->conf);
                 #pragma omp task firstprivate(ntsk)
                 {
                    explore_one_maxconfig(ntsk);
@@ -475,6 +485,9 @@ void C15unfolder:: explore_seq()
    Task *tsk;
    std::queue<Task> tasks;
 
+   std::queue<Task> full_tasks;
+   Task *ntsk;
+
    start_time = time (nullptr);
 
 //   PRINT ("c15: explore: Replay at the beginning: %s", replay.str().c_str());
@@ -484,7 +497,8 @@ void C15unfolder:: explore_seq()
 
    int tcount = 1;
    PRINT ("c15: explore: initialize the queue");
-   tasks.emplace(d, j, t, c); // first task with all empty, // J inlucdes C, so C is unnecessary
+//   tasks.emplace(d, j, t, c); // first task with all empty, // J inlucdes C, so C is unnecessary
+   tasks.emplace(replay, d, j, t, c);
    while (!tasks.empty())
    {
       PRINT ("c15: explore: POP A NEW TASK FROM QUEUE");
@@ -497,10 +511,11 @@ void C15unfolder:: explore_seq()
 
       PRINT ("c15::explore: call get_por_analysis for tunfolder");
       unfolder = _get_por_analysis();
-      replay.build_from (tsk->trail, tsk->conf, tsk->add);
+//      replay.build_from (tsk->trail, tsk->conf, tsk->add);
 //      PRINT ("replay: %s", replay.str().c_str());
 
-      unfolder->_set_replay_sleepset(replay, tsk->dis, tsk->add); // Cho nay chua the hien add
+      unfolder->_set_replay_sleepset(tsk->rep, tsk->dis, tsk->add); // Cho nay chua the hien add
+
       PRINT ("c15: explore: call run from steroids");
       unfolder->_exec->run();
 
@@ -555,7 +570,8 @@ void C15unfolder:: explore_seq()
 
         tsk->dis.dump();
 
-        while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
+//        while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
+        while (tsk->trail.size() > 0)
         {
            e = tsk->trail.pop ();
               // pop last event out of the trail/config; indicate so to the disset
@@ -588,9 +604,15 @@ void C15unfolder:: explore_seq()
            {
                  // Here we create a new task to explore new branch with the alternative found
                  PRINT ("c15: explore: an alternative found");
-//                 replay.build_from (tsk->trail, tsk->conf, tsk->add);
+                 replay.build_from (tsk->trail, tsk->conf, tsk->add);
 //                 tsk->dis.dump();
-                 tasks.emplace (tsk->dis, tsk->add, tsk->trail, tsk->conf);
+                 ntsk = new Task (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
+                 if (tsk->trail.size() < last_trail_size)
+                    if (existed(full_tasks,ntsk))
+                       continue;
+
+                 tasks.push_back(*ntsk);
+//                 tasks.emplace (tsk->dis, tsk->add, tsk->trail, tsk->conf);
 //                 tasks.emplace (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
                  tcount++;
                  PRINT ("c15: explore: new task inserted in tasks");
