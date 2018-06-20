@@ -215,7 +215,7 @@ std::string Replay::str (unsigned altidx)
    return s;
 }
 
-bool operator== (Replay &other)
+bool Replay:: operator== (Replay &other)
 {
    if (size() != other.size())
       return false;
