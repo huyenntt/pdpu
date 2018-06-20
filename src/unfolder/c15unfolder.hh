@@ -110,7 +110,7 @@ public:
 //   void explore_para1 (); // with queue of tasks
 
    void explore_seq();
-   bool existed(std::queue<Task> &full_tasks, Task *ntsk);
+   bool existed(std::vector<Task> &full_tasks, Task *ntsk);
 
 //   void explore_origin ();
 

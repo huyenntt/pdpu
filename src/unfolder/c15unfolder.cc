@@ -295,9 +295,9 @@ std::unique_ptr<Tunfolder> C15unfolder:: _get_por_analysis () // Lay cac tham so
 //     // statistics (all for c15unfolder) - Minh can xem lai cho tong ket thong tin 1 chut
 //}
 
-bool C15unfolder:: existed (std::vector<Task> &ft, Task *ntsk)
+bool C15unfolder:: existed (std::vector<Task> &full_tasks, Task *ntsk)
 {
-   for (auto &t: ft)
+   for (auto &t: full_tasks)
       if (t == *ntsk)
          return true;
 
