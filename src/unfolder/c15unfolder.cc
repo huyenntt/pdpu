@@ -295,11 +295,12 @@ std::unique_ptr<Tunfolder> C15unfolder:: _get_por_analysis () // Lay cac tham so
 //     // statistics (all for c15unfolder) - Minh can xem lai cho tong ket thong tin 1 chut
 //}
 
-bool C15unfolder:: existed (std::queue<Task> &full_tasks, Task *ntsk)
+bool C15unfolder:: existed (std::vector<Task> &ft, Task *ntsk)
 {
-   for (auto &t: full_tasks)
+   for (auto &t: ft)
       if (t == *ntsk)
          return true;
+
    return false;
 }
 //===================================
@@ -410,6 +411,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
                 replay.build_from (tsk->trail, tsk->conf, tsk->add);
                 ntsk = new Task(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
 //                ntsk = new Task(tsk->dis, tsk->add, tsk->trail, tsk->conf);
+                // Can phai push task vafo full_tasks o day
                 #pragma omp task firstprivate(ntsk)
                 {
                    explore_one_maxconfig(ntsk);
@@ -435,9 +437,10 @@ void C15unfolder::explore_para ()
    Disset d;
    Config c (Unfolding::MAX_PROC);
    Cut j (Unfolding::MAX_PROC);
-//   Replay replay (u);
+   Replay replay (u);
 //   std::queue<Task> tasks;
-   Task *tsk = new Task(d,j,t,c);
+//   Task *tsk = new Task(d,j,t,c);
+   Task *tsk = new Task(replay,d,j,t,c);
    time_t start_time;
 
    //   PRINT ("c15: explore: Replay at the beginning: %s", replay.str().c_str());
@@ -482,10 +485,11 @@ void C15unfolder:: explore_seq()
    int i = 0;
    time_t start_time;
    std::unique_ptr<Tunfolder> unfolder;
+
    Task *tsk;
    std::queue<Task> tasks;
 
-   std::queue<Task> full_tasks;
+   std::vector<Task> full_tasks;
    Task *ntsk;
 
    start_time = time (nullptr);
