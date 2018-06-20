@@ -220,7 +220,7 @@ bool Replay:: operator== (Replay &other)
    if (size() != other.size())
       return false;
    for (int i = 0; i< size(); i++)
-      if ((*this[i].tid != other[i]) or (*this[i].count != other[i].count))
+      if ((*(this+i).tid != other[i]) or (*(this + i).count != other[i].count))
          return false;
    return true;
 }
