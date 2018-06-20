@@ -616,7 +616,7 @@ void C15unfolder:: explore_seq()
                        continue;
 
                  tasks.push(std::move(*ntsk));
-                 full_taks.emplace_back(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
+                 full_tasks.emplace_back(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
 //                 tasks.emplace (tsk->dis, tsk->add, tsk->trail, tsk->conf);
 //                 tasks.emplace (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
                  tcount++;
