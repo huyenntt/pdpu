@@ -79,6 +79,8 @@ public :
    /// which the replay sequence switches between the trail and the alternative
    inline std::string str (unsigned altidx = UINT_MAX);
 
+   inline bool operator== (Replay &other);
+
    /// This object is a mapping from integers to integers. In the context of the
    /// Replay class, it is used as a map from DPU thread ids to Steroids thread
    /// ids. The mapping 0 -> 0 is always there, even after a call to clear().
