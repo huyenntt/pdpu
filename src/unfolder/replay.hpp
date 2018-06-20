@@ -221,9 +221,8 @@ bool Replay:: operator== (Replay &other)
       return false;
 
    for (int i = 0; i< size(); i++)
-      PRINT ("other(tid,count)=(%d,%d)", other[i].tid,other[i].count);
-
-//      if ( (this[i].tid != other[i]) or (this[i]->count != other[i].count) )
+//      PRINT ("other(tid,count)=(%d,%d)", other[i].tid,other[i].count);
+      if ( ((*this)[i].tid != other[i]) or ((*this)[i]->count != other[i].count) )
          return false;
    return true;
 }
