@@ -615,7 +615,7 @@ void C15unfolder:: explore_seq()
                     if (existed(full_tasks,ntsk))
                        continue;
 
-                 tasks.push_back(*ntsk);
+                 tasks.push(*ntsk);
 //                 tasks.emplace (tsk->dis, tsk->add, tsk->trail, tsk->conf);
 //                 tasks.emplace (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
                  tcount++;
