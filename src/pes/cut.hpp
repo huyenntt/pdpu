@@ -68,6 +68,15 @@ Cut & Cut::operator= (Cut && other)
    return *this;
 }
 
+bool Cut:: operator== (const Cut &other)
+{
+   if (nrp != other.nrp) return false;
+   for (int i=0; i < nrp; i++)
+      if (max[i] != other.max[i])
+         return false;
+   return true;
+}
+
 // void Cut::fire (Event *e) in pes/cut.cc
 // void Cut::unfire (Event *e) in pes/cut.cc
 

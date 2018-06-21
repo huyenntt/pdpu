@@ -78,6 +78,7 @@ public:
    /// returns the maximal event of process pid in the cut
    inline Event *operator[] (unsigned pid) const;
    inline Event *&operator[] (unsigned pid);
+   inline bool operator== (const Cut &other);
 
    /// returns the number of processes of the unfolding
    inline unsigned num_procs () const;
