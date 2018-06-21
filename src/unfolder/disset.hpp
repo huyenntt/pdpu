@@ -323,7 +323,7 @@ void Disset::unadd ()
    ASSERT (stack.size ());
    ASSERT (unjust == &stack.back());
 //   ASSERT (stack.back().e->flags.ind);
-   ASSERT ( inD(stack.back().e) );
+//   ASSERT ( inD(stack.back().e) ); //no need
 
 //   stack.back().e->flags.ind = 0; // ko dung den flags nay nua
    unjust_remove_head ();
@@ -341,7 +341,6 @@ bool Disset::trail_push (Event *e, int idx)
    // if we are pushing to the trail an event that is already in D, we got a
    // sleep-set block execution, and we should stop it
 //   if (e->flags.ind)
-//   PRINT ("inD: %d===================================", inD(e));
    if (inD(e))
    {
       ssb_count++;
@@ -363,7 +362,7 @@ bool Disset::trail_push (Event *e, int idx)
                  ssb_count, idx, u + j, j, u);
 #endif
       PRINT ("dis: trail_push: add event already in D");
-      return false;
+            return false;
    }
 
    // iterate through the list of unjustified events and move to the list of

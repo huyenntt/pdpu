@@ -67,7 +67,7 @@ void Task:: dump()
 {
 
 //   PRINT ("task: dumping task: id %d", tskid);
-//   PRINT ("Task: Replay: %s", rep.str().c_str()); // Chua ro in replay ra nhu the nao
+   PRINT ("Task: Replay: %s", rep.str().c_str()); // Chua ro in replay ra nhu the nao
 //   PRINT ("tasks: dump: replay: %s", rep.str().c_str());
    PRINT ("task: dump: dis");
    dis.dump();
@@ -187,10 +187,10 @@ void Task:: dump()
 
 bool Task:: operator== (Task &other)
 {
-//   if (dis == other.dis) && (add == other.add)
-//         return true;
+   if (add == other.add)
+         return true;
 //   return false;
-   if (rep == other.rep) return true;
+//   if (rep == other.rep) return true;
 
    return false;
 }

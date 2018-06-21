@@ -503,6 +503,8 @@ void C15unfolder:: explore_seq()
    PRINT ("c15: explore: initialize the queue");
 //   tasks.emplace(d, j, t, c); // first task with all empty, // J inlucdes C, so C is unnecessary
    tasks.emplace(replay, d, j, t, c);
+   full_tasks.emplace_back(replay, d, j, t, c);
+
    while (!tasks.empty())
    {
       PRINT ("c15: explore: POP A NEW TASK FROM QUEUE");
@@ -611,15 +613,17 @@ void C15unfolder:: explore_seq()
                  replay.build_from (tsk->trail, tsk->conf, tsk->add);
 //                 tsk->dis.dump();
                  ntsk = new Task (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
-//                 if (tsk->trail.size() < last_trail_size)
-//                    if (existed(full_tasks,ntsk))
-//                    {
-//                       PRINT ("c15: explore_seq: task already exists");
-//                       continue;
-//                    }
+//                 if (tsk->trail.size() <= last_trail_size)
+                    if (existed(full_tasks,ntsk))
+                    {
+                       PRINT ("c15: explore_seq: task already exists");
+                       continue;
+                    }
 
                  tasks.push(std::move(*ntsk));
-                 full_tasks.emplace_back(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
+                 ntsk->dump(); // move chua gan ntsk ve null het
+                 full_tasks.push_back(std::move(*ntsk));
+//                 full_tasks.emplace_back(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
 //                 tasks.emplace (tsk->dis, tsk->add, tsk->trail, tsk->conf);
 //                 tasks.emplace (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
                  tcount++;
