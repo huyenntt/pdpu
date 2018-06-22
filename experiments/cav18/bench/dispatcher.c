@@ -37,7 +37,7 @@
 */
 
 #ifndef PARAM1
-#define PARAM1 5
+#define PARAM1 2
 #endif
 
 #ifndef PARAM2

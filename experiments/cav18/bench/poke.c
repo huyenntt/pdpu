@@ -33,11 +33,11 @@
 */
 
 #ifndef PARAM1
-#define PARAM1 7
+#define PARAM1 3
 #endif
 
 #ifndef PARAM2
-#define PARAM2 3
+#define PARAM2 2
 #endif
 
 

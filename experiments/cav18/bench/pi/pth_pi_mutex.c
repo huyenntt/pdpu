@@ -42,7 +42,7 @@
 #endif
 
 #ifndef THREADS
-#define THREADS 5
+#define THREADS 3
 #endif
 
 #ifndef ITERS
