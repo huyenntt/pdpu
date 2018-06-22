@@ -299,13 +299,13 @@ void Disset::add (Event *e, int idx)
    // the top_idx variable
 
    ASSERT (e);
-   PRINT ("Dis: add: ");
+   PRINT (" dis: add: ");
 //   ASSERT (!e->flags.ind); // e is not in D yet
    ASSERT (!inD(e));
    ASSERT (idx >= 0);
    ASSERT (idx >= top_idx);
    if (stack.size() >= stack.capacity())
-      throw std::out_of_range ("Dis: capacity exceeded");
+      throw std::out_of_range (" dis: capacity exceeded");
 
 //   e->flags.ind = 1;
 //   PRINT ("Dis: add: e->flags.ind after %d",e->flags.ind);
@@ -392,7 +392,7 @@ void Disset::trail_pop (int idx)
    // remove at least the top, and potentially other elements of D, as multiple
    // events in D can have been stored at the same depth top_idx;
    ASSERT (idx >= -1);
-   PRINT (" dis: trail_pop");
+//   PRINT (" dis: trail_pop");
 
    while (idx < top_idx) // Voi nhung event in trail (idx < top_idx), remove e khoi D vi moi e in trail: e < e' with e'in D
    {
@@ -407,7 +407,7 @@ void Disset::trail_pop (int idx)
 //      omp_unset_lock(&stack.back().e->elock);
 
 //      DEBUG ("c15u: disset: removing %08x", stack.back().e->uid());
-      PRINT (" dis: trail_pop removing %08x", stack.back().e->uid());
+//      PRINT (" dis: trail_pop removing %08x", stack.back().e->uid());
       stack.pop_back (); // cho nay moi loai bo event khoi D
       top_idx = stack.size() ? stack.back().idx : -1;
    }
@@ -426,7 +426,7 @@ void Disset::trail_pop (int idx)
       unjust_add (just_pop ());
       top_disabler = just_isempty () ? -1 : just_peek()->disabler;
    }
-   PRINT ("dis: trail_pop: Done");
+//   PRINT ("dis: trail_pop: Done");
 }
 
 bool Disset::intersects_with (const Event *e) const
