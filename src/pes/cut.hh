@@ -79,6 +79,7 @@ public:
    inline Event *operator[] (unsigned pid) const;
    inline Event *&operator[] (unsigned pid);
    inline bool operator== (const Cut &other);
+   inline bool is_subset(const Cut &other);
 
    /// returns the number of processes of the unfolding
    inline unsigned num_procs () const;

@@ -77,6 +77,20 @@ bool Cut:: operator== (const Cut &other)
    return true;
 }
 
+bool Cut:: is_subset(const Cut &other)
+{
+   if (nrp > other.nrp) return false;
+
+   for (int i=0; i < nrp; i++)
+   {
+      if ( (max[i] == other.max[i]) or (max[i]->is_pred_of(other.max[i])) )
+         continue;
+       else
+         return false;
+   }
+
+   return true;
+}
 // void Cut::fire (Event *e) in pes/cut.cc
 // void Cut::unfire (Event *e) in pes/cut.cc
 
