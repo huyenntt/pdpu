@@ -129,7 +129,7 @@ public:
    void set_flags();
    void unset_flags();
 
-   bool operator== (Disset &other);
+//   bool operator== (Disset &other);
 
    /// dumps debug information to stdout
    void dump () const;

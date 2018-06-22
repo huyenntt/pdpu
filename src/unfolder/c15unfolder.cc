@@ -295,14 +295,24 @@ std::unique_ptr<Tunfolder> C15unfolder:: _get_por_analysis () // Lay cac tham so
 //     // statistics (all for c15unfolder) - Minh can xem lai cho tong ket thong tin 1 chut
 //}
 
-bool C15unfolder:: existed (std::vector<Task> &full_tasks, Task *ntsk)
+bool C15unfolder:: existed (Task *ntsk, std::vector<Task> &full_tasks)
 {
    for (auto &t: full_tasks)
-      if (t == *ntsk)
+      if (*ntsk == t)
          return true;
 
    return false;
 }
+//================
+bool C15unfolder:: rpl_existed (Replay rpl, std::vector<Replay> &rpl_list)
+{
+   for (auto &r : rpl_list)
+      if ( (rpl == r) or (rpl.is_derived(r)))
+         return true;
+
+   return false;
+}
+
 //===================================
 void C15unfolder::explore_one_maxconfig (Task *tsk)
 {
@@ -490,7 +500,9 @@ void C15unfolder:: explore_seq()
    std::queue<Task> tasks;
 
    std::vector<Task> full_tasks;
-   Task *ntsk;
+   std::vector<Replay> rpl_list;
+
+//   Task *ntsk;
 
    start_time = time (nullptr);
 
@@ -504,6 +516,7 @@ void C15unfolder:: explore_seq()
 //   tasks.emplace(d, j, t, c); // first task with all empty, // J inlucdes C, so C is unnecessary
    tasks.emplace(replay, d, j, t, c);
    full_tasks.emplace_back(replay, d, j, t, c);
+   rpl_list.push_back(replay);
 
    while (!tasks.empty())
    {
@@ -535,7 +548,7 @@ void C15unfolder:: explore_seq()
       i = s.get_rt()->trace.num_ths;
       if (counters.stid_threads < i) counters.stid_threads = i;
 
-      s.print ();
+//      s.print ();
 //      tsk->trail.dump();
       PRINT ("c15u: explore: Stream to events:");
 
@@ -599,39 +612,40 @@ void C15unfolder:: explore_seq()
            counters.alt.calls++;
            if (! unfolder->might_find_alternative (tsk->conf, tsk->dis, e))
            {
-              PRINT ("c15: epxplore: no possiblility to get an alternative");
+              PRINT ("c15u: epxplore: no possiblility to get an alternative");
                  continue;
            }
 
 //           PRINT ("c15: explore: trail.size %zu", tsk->trail.size());
-           tsk->dis.add (e, tsk->trail.size()); // Phan khoi tao tsk->dis co van de -> Done with cctor!
+           tsk->dis.add (e, tsk->trail.size());
 
            if (unfolder->find_alternative (tsk->trail, tsk->conf, tsk->dis, tsk->add, u))
            {
                  // Here we create a new task to explore new branch with the alternative found
-                 PRINT ("c15: explore: an alternative found");
+                 PRINT ("c15u: explore: an alternative found");
                  replay.build_from (tsk->trail, tsk->conf, tsk->add);
-//                 tsk->dis.dump();
-                 ntsk = new Task (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
-//                 if (tsk->trail.size() <= last_trail_size)
-                    if (existed(full_tasks,ntsk))
-                    {
-                       PRINT ("c15: explore_seq: task already exists");
-                       continue;
-                    }
-
-                 tasks.push(std::move(*ntsk));
-                 ntsk->dump(); // move chua gan ntsk ve null het
-                 full_tasks.push_back(std::move(*ntsk));
+//                    if (existed(ntsk,full_tasks))
+                 if (rpl_existed (replay,rpl_list))
+                 {
+                    PRINT ("c15u: explore_seq: task already exists");
+                    continue;
+                 }
+//                 ntsk = new Task (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
+//                 tasks.push(std::move(*ntsk));
+//                 PRINT("New task after tasks.push");
+//                 ntsk->dump(); // move chua gan ntsk ve null het
+//                 full_tasks.push_back(std::move(*ntsk));
 //                 full_tasks.emplace_back(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
 //                 tasks.emplace (tsk->dis, tsk->add, tsk->trail, tsk->conf);
-//                 tasks.emplace (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
+
+                 tasks.emplace (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
+                 rpl_list.push_back(replay);
                  tcount++;
-                 PRINT ("c15: explore: new task inserted in tasks");
+                 PRINT ("c15u: explore: new task inserted in tasks");
 //                 tasks.back().dump();
             } // end of if
            else
-              PRINT ("c15: epxplore: no alt found");
+              PRINT ("c15u: epxplore: no alt found");
 
            tsk->dis.unadd (); // Chi co duy nhat 1 event cuoi cung tro ve 0.
 
@@ -643,7 +657,7 @@ void C15unfolder:: explore_seq()
               }
         } // end of while trail
 
-       PRINT ("c15: explore: stop backtracking==========================");
+       PRINT ("c15u: explore: stop backtracking==========================");
 
        counters.ssbs += tsk->dis.ssb_count;
    } // End of while tasks

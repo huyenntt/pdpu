@@ -80,6 +80,7 @@ public :
    inline std::string str (unsigned altidx = UINT_MAX);
 
    inline bool operator== (Replay &other);
+   inline bool is_derived (const Replay &other);
 
    /// This object is a mapping from integers to integers. In the context of the
    /// Replay class, it is used as a map from DPU thread ids to Steroids thread

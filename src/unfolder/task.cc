@@ -69,12 +69,12 @@ void Task:: dump()
 //   PRINT ("task: dumping task: id %d", tskid);
    PRINT ("Task: Replay: %s", rep.str().c_str()); // Chua ro in replay ra nhu the nao
 //   PRINT ("tasks: dump: replay: %s", rep.str().c_str());
-   PRINT ("task: dump: dis");
-   dis.dump();
-   PRINT ("task: dump: add");
-   add.dump();
-   PRINT ("task: dump: trail");
-   trail.dump();
+//   PRINT ("task: dump: dis");
+//   dis.dump();
+//   PRINT ("task: dump: add");
+//   add.dump();
+//   PRINT ("task: dump: trail");
+//   trail.dump();
 //   PRINT ("task: dump: conf");
 //   conf.dump();
 }
@@ -184,13 +184,12 @@ void Task:: dump()
 //   unfolder._exec->run();
 //}
 
-
+//  A task is duplicated when its replay is equal or just derived from the other.
 bool Task:: operator== (Task &other)
 {
-   if (add == other.add)
-         return true;
-//   return false;
-//   if (rep == other.rep) return true;
+   if (add == other.add)  return true;
+
+//   if ( (rep == other.rep) or (rep.is_derived(other.rep) ) )   return true;
 
    return false;
 }

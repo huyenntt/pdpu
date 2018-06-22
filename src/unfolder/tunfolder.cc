@@ -43,8 +43,8 @@ Tunfolder::Tunfolder (const stid::ExecutorConfig &config, Altalgo a, unsigned kb
    _config (config),
    alt_algo (a),
    kpartial_bound (kbound),
-   comb (a, kbound),
-   max_context_switches (maxcts)
+   comb (a, kbound)
+//   max_context_switches (maxcts)
 {
    DEBUG ("Tunf: ctor");
    DEBUG ("Tunf: config: %zu", _config.memsize);

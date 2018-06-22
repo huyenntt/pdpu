@@ -110,7 +110,8 @@ public:
 //   void explore_para1 (); // with queue of tasks
 
    void explore_seq();
-   bool existed(std::vector<Task> &full_tasks, Task *ntsk);
+   bool existed(Task *ntsk, std::vector<Task> &full_tasks);
+   bool rpl_existed(Replay rpl, std::vector<Replay> &rpl_list);
 
 //   void explore_origin ();
 

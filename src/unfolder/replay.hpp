@@ -221,9 +221,24 @@ bool Replay:: operator== (Replay &other)
       return false;
 
    for (int i = 0; i< size(); i++)
-//      PRINT ("other(tid,count)=(%d,%d)", other[i].tid,other[i].count);
       if ( ( (*this)[i].tid != other[i].tid) or ( (*this)[i].count != other[i].count ) )
          return false;
+   return true;
+}
+
+// this replay is more general than the other which means this replay's list is a subset of other's list
+bool Replay:: is_derived (const Replay &other)
+{
+   if (size() > other.size()) return false;
+
+   for (int i = 0; i< size(); i++)
+      if ( ((*this)[i].tid == other[i].tid) and
+            ((*this)[i].count == other[i].count)
+          )
+         continue;
+      else
+         return false;
+
    return true;
 }
 
