@@ -54,8 +54,15 @@ int main (int argc, char ** argv)
 
    ret = pthread_create (th + 0, 0, main2_thd, 0);
    assert (ret == 0);
+
    ret = pthread_create (th + 1, 0, main2_thd, 0);
    assert (ret == 0);
+
+//   ret = pthread_create (th + 2, 0, main2_thd, 0);
+//   assert (ret == 0);
+//
+//   ret = pthread_create (th + 3, 0, main2_thd, 0);
+//   assert (ret == 0);
 
    ret = pthread_mutex_lock(&m1);
    assert(ret == 0);
@@ -68,5 +75,12 @@ int main (int argc, char ** argv)
 
    ret = pthread_join (th[1], 0);
    assert (ret == 0);
+
+//   ret = pthread_join (th[2], 0);
+//   assert (ret == 0);
+//
+//   ret = pthread_join (th[3], 0);
+//   assert (ret == 0);
+
    return 0;
 }

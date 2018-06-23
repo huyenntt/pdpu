@@ -9,12 +9,12 @@
 #endif
 
 #ifndef PARAM2
-#define PARAM2 4
+#define PARAM2 2
 #endif
 
 #define TASKS   1      // maximum number of tasks processed by a worker
 #define PRODS   PARAM1 // number of producers
-#define ITERS   2      // number of iterations that producers make before producing a number
+#define ITERS   1      // number of iterations that producers make before producing a number
 #define WORKERS PARAM2 // number of worker threads
 
 pthread_mutex_t mut[WORKERS];
