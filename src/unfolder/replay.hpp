@@ -148,6 +148,7 @@ void Replay::build_from (const Trail &t, const Cut &c, const Cut &j)
    lim = size();
    extend_from (j, c);
    finish ();
+   PRINT ("c15u: explore: replay seq: %s", str(lim).c_str());
 
    // FIXME - we need to improve the TRACE/INFO/DEBUG macros so that we can
    // avoid this ugly code ...
@@ -229,15 +230,17 @@ bool Replay:: operator== (Replay &other)
 // this replay is more general than the other which means this replay's list is a subset of other's list
 bool Replay:: is_derived (const Replay &other)
 {
-   if (size() > other.size()) return false;
+   if (size() <= other.size()) return false;
 
-   for (int i = 0; i< size(); i++)
+   // forget that last thread {-1,-1}
+   for (int i = 0; i< other.size() - 1 ; i++)
+   {
       if ( ((*this)[i].tid == other[i].tid) and
-            ((*this)[i].count == other[i].count)
-          )
+            ((*this)[i].count == other[i].count) )
          continue;
       else
          return false;
+   }
 
    return true;
 }

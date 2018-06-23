@@ -307,7 +307,8 @@ bool C15unfolder:: existed (Task *ntsk, std::vector<Task> &full_tasks)
 bool C15unfolder:: rpl_existed (Replay rpl, std::vector<Replay> &rpl_list)
 {
    for (auto &r : rpl_list)
-      if ( (rpl == r) or (rpl.is_derived(r)))
+//      if ( (rpl == r) or rpl.is_derived(r))
+   if (rpl == r)
          return true;
 
    return false;
@@ -516,7 +517,7 @@ void C15unfolder:: explore_seq()
 //   tasks.emplace(d, j, t, c); // first task with all empty, // J inlucdes C, so C is unnecessary
    tasks.emplace(replay, d, j, t, c);
    full_tasks.emplace_back(replay, d, j, t, c);
-   rpl_list.push_back(replay);
+//   rpl_list.push_back(replay); // forget the first replay
 
    while (!tasks.empty())
    {
@@ -627,7 +628,7 @@ void C15unfolder:: explore_seq()
 //                    if (existed(ntsk,full_tasks))
                  if (rpl_existed (replay,rpl_list))
                  {
-                    PRINT ("c15u: explore_seq: task already exists");
+                    PRINT ("c15u: explore: task already exists");
                     continue;
                  }
 //                 ntsk = new Task (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
@@ -662,6 +663,10 @@ void C15unfolder:: explore_seq()
        counters.ssbs += tsk->dis.ssb_count;
    } // End of while tasks
    // statistics (all for c15unfolder) - Minh can xem lai cho tong ket thong tin 1 chut
+
+   PRINT ("c15u: all the replays");
+   for (int i = 0; i < rpl_list.size(); i++)
+      PRINT ("%s", rpl_list[i].str().c_str());
 
    counters.maxconfs = counters.runs - counters.ssbs;
    counters.avg_max_trail_size /= counters.runs;
