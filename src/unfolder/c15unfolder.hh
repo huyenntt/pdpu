@@ -61,7 +61,8 @@ public:
 
    /// All replay sequences sent to steroids will be recorded here if
    /// record_replays is true.
-   std::vector<stid::Replay> replays;
+//   std::vector<stid::Replay> replays;
+   std::vector<Replay> replays;
 
    /// Maximum number of seconds that the unfolder is able to work. Set to 0 to
    /// disable.
@@ -76,6 +77,7 @@ protected:
 
    omp_lock_t ulock; // unfolding lock
    omp_lock_t clock; // counters lock
+//   std::vector<omp_lock_t> proc_locks;
 
 private:
    /// The comb data structure

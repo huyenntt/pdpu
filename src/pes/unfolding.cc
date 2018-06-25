@@ -33,6 +33,7 @@ Unfolding::Unfolding () :
    if (procs == 0)
       throw std::bad_alloc ();
 
+   proc_locks.reserve(MAX_PROC);
    // create the first process and the bottom event in it; creat is NULL
    new_proc (0);
 

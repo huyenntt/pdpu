@@ -4,6 +4,7 @@
 #include <fstream>
 #include <unordered_map>
 #include <stdlib.h>
+#include <omp.h>
 
 #include "pes/event.hh"
 
@@ -43,6 +44,8 @@ public:
 
    /// returns a new fresh color
    inline unsigned get_fresh_color ();
+
+   std::vector<omp_lock_t> proc_locks;
 
 private :
    /// memory space where Processes, EventBoxes and Events will be stored

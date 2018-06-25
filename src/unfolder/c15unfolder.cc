@@ -50,6 +50,7 @@ C15unfolder::C15unfolder (Altalgo a, unsigned kbound, unsigned maxcts) :
    }
 
    // Initialize the lock for the unfolding
+//   proc_locks.reserve(MAX_PROC);
    omp_init_lock(&ulock);
    omp_init_lock(&clock);
 
@@ -330,9 +331,11 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
    PRINT ("c15::explore: call get_por_analysis for tunfolder");
    unfolder = _get_por_analysis();
 //   replay.build_from (tsk->trail, tsk->conf, tsk->add);
-   PRINT ("replay: %s", replay.str().c_str());
+//   PRINT ("replay: %s", replay.str().c_str());
+   PRINT ("replay: %s", tsk->rep.str().c_str());
 
-   unfolder->_set_replay_sleepset(replay, tsk->dis, tsk->add);
+//   unfolder->_set_replay_sleepset(replay, tsk->dis, tsk->add);
+   unfolder->_set_replay_sleepset(tsk->rep, tsk->dis, tsk->add);
    PRINT ("c15: explore: call run from steroids");
    unfolder->_exec->run();
 
@@ -341,7 +344,8 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 
    omp_set_lock(&clock);
      // if requested, record the replay sequence
-     if (record_replays) replays.push_back (replay);
+//     if (record_replays) replays.push_back (replay);
+//   if (record_replays) replays.push_back (tsk->rep); // always push a new replay to list of replays
            counters.runs++;
      i = s.get_rt()->trace.num_ths;
      if (counters.stid_threads < i)
@@ -357,7 +361,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
       * considered for alternatives before.
       */
 //     Event * last_old_trail = tsk->trail.empty() ? nullptr : tsk->trail.peek();
-     int last_trail_size = tsk->trail.size();
+//     int last_trail_size = tsk->trail.size();
 
       omp_set_lock(&ulock);
          b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec); // Phai xu ly voi d,c của task-> DONE!
@@ -382,7 +386,8 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
        // backtrack until we find some right subtree to explore
        PRINT("c15: explore: backtrach the trail============================");
 
-       while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
+//       while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
+       while (tsk->trail.size() > 0)
        {
           e = tsk->trail.pop ();
           // pop last event out of the trail/config; indicate so to the disset
@@ -420,6 +425,12 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
                 // Here we create a new task to explore new branch with the alternative found
                 PRINT ("c15: explore: an alternative found");
                 replay.build_from (tsk->trail, tsk->conf, tsk->add);
+                if (rpl_existed (replay,replays))
+                {
+                    PRINT ("c15u: explore: task already exists");
+                    continue;
+                }
+                replays.push_back(replay);
                 ntsk = new Task(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
 //                ntsk = new Task(tsk->dis, tsk->add, tsk->trail, tsk->conf);
                 // Can phai push task vafo full_tasks o day
