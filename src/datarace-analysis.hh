@@ -57,7 +57,8 @@ public :
 
    /// Stores the liset of program executions where we are going to search for
    /// data races.
-   std::vector<stid::Replay> replays;
+//   std::vector<stid::Replay> replays;
+   std::vector<Replay> replays;
 
    /// Maximum number of seconds that the analysis is able to work. Set to 0 to
    /// disable.
