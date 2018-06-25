@@ -512,8 +512,10 @@ std::unique_ptr<DataRaceAnalysis> get_dr_analysis ()
    return dra;
 }
 
-void copy_replays_for_dr (std::vector<stid::Replay> &dst,
-   const std::vector<stid::Replay> &src)
+//void copy_replays_for_dr (std::vector<stid::Replay> &dst,
+//   const std::vector<stid::Replay> &src)
+void copy_replays_for_dr (std::vector<Replay> &dst,
+   const std::vector<Replay> &src)
 {
    unsigned seed;
    int cutoff;
@@ -598,8 +600,8 @@ int main (int argc, char **argv)
 
       // build entire unfolding
 //      PRINT ("dpu: por: starting POR analysis ...Thread %d", omp_get_thread_num());
-//      unf->explore_para ();
-      unf->explore_seq ();
+      unf->explore_para ();
+//      unf->explore_seq ();
 //      unf->explore_origin();
 
       if (unf->counters.timeout)
@@ -633,7 +635,8 @@ int main (int argc, char **argv)
       if (opts::analysis == opts::Analysis::DRA)
       {
          // save the replays in a temporary vector and delete the analysis
-         std::vector<stid::Replay> replays;
+//         std::vector<stid::Replay> replays;
+         std::vector<Replay> replays;
          copy_replays_for_dr (replays, unf->replays);
          unf.reset (nullptr);
 
