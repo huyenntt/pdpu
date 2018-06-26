@@ -77,6 +77,7 @@ protected:
 
    omp_lock_t ulock; // unfolding lock
    omp_lock_t clock; // counters lock
+   omp_lock_t rlock; // replays lock
 //   std::vector<omp_lock_t> proc_locks;
 
 private:

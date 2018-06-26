@@ -53,7 +53,7 @@ C15unfolder::C15unfolder (Altalgo a, unsigned kbound, unsigned maxcts) :
 //   proc_locks.reserve(MAX_PROC);
    omp_init_lock(&ulock);
    omp_init_lock(&clock);
-
+   omp_init_lock(&rlock);
 }
 
 C15unfolder::~C15unfolder ()
@@ -63,6 +63,7 @@ C15unfolder::~C15unfolder ()
    // Destroy the lock of the unfolding
    omp_destroy_lock(&ulock);
    omp_destroy_lock(&clock);
+   omp_destroy_lock(&rlock);
 }
 
 stid::ExecutorConfig C15unfolder::prepare_executor_config () const
@@ -363,9 +364,9 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //     Event * last_old_trail = tsk->trail.empty() ? nullptr : tsk->trail.peek();
 //     int last_trail_size = tsk->trail.size();
 
-      omp_set_lock(&ulock);
+//      omp_set_lock(&ulock);
          b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec); // Phai xu ly voi d,c của task-> DONE!
-      omp_unset_lock(&ulock);
+//      omp_unset_lock(&ulock);
       // b could be false because of SSBs or defects - TAM BO HIEN THI THONG TIN CHO DE THEO DOI CAC THONG TIN KHAC
 //        PRINT ("c15u: explore: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
        #ifdef VERB_LEVEL_TRACE
@@ -430,7 +431,10 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
                     PRINT ("c15u: explore: task already exists");
                     continue;
                 }
-                replays.push_back(replay);
+                omp_set_lock(&rlock);
+                   replays.push_back(replay);
+                omp_unset_lock(&rlock);
+
                 ntsk = new Task(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
 //                ntsk = new Task(tsk->dis, tsk->add, tsk->trail, tsk->conf);
                 // Can phai push task vafo full_tasks o day

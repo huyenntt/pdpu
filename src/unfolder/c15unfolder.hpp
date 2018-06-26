@@ -240,12 +240,6 @@ bool C15unfolder::stream_to_events
 
    DEBUG ("c15u: s2e: c %s t %zd", c.str().c_str(), t ? t->size() : -1);
 
-//  for (unsigned i = 0; i < Unfolding::MAX_PROC; i++)
-//  {
-////       PRINT ("start[%d] %p", i, start[i]);
-//     start[i] = nullptr;
-//  }
-
    // reset the pidpool and the pidmap for this execution
    pidpool.clear ();
 
