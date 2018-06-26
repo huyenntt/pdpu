@@ -15,6 +15,14 @@ Process::Process (Event *creat, Unfolding *u) :
 
    // initialize the pointer to the last event created
    last = e;
+
+   //initialize plock
+   omp_init_lock(&plock);
+}
+
+Process:: ~Process ()
+{
+   omp_destroy_lock(&plock);
 }
 
 Process::It<Event> Process::begin ()
@@ -60,6 +68,9 @@ Event *Process::add_event_0p (Event *creat)
 {
    Event *e;
 
+   // lock the process
+   omp_set_lock(&plock);
+
    ASSERT (creat); // insertion of bottom is done elsewhere
    ASSERT (last); // we have a last
    ASSERT (pid() == last->pid()); // last point inside us
@@ -87,6 +98,9 @@ Event *Process::add_event_0p (Event *creat)
    // update the last pointer and the counters
    last = e;
    counters.events++;
+
+   // unlock the process
+   omp_unset_lock(&plock);
    return e;
 }
 
@@ -94,6 +108,8 @@ Event *Process::add_event_0p (Event *creat)
 Event *Process::add_event_1p (Action ac, Event *p)
 {
    Event *e;
+
+   omp_set_lock(&plock);
 
    ASSERT (last); // we have a last
    ASSERT (pid() == last->pid()); // last point inside us
@@ -120,6 +136,10 @@ Event *Process::add_event_1p (Action ac, Event *p)
 
    counters.events++;
    last = e;
+
+   //unlock the process
+   omp_unset_lock(&plock);
+
    return e;
 }
 
@@ -127,6 +147,9 @@ Event *Process::add_event_1p (Action ac, Event *p)
 Event * Process::add_event_2p (Action ac, Event *p, Event *m)
 {
    Event *e;
+
+   // lock the process to add new event
+   omp_set_lock(&plock);
 
    ASSERT (last); // we have a last
    ASSERT (pid() == last->pid()); // last point inside us
@@ -153,6 +176,10 @@ Event * Process::add_event_2p (Action ac, Event *p, Event *m)
 
    counters.events++;
    last = e;
+
+   // unlock the process
+   omp_unset_lock(&plock);
+
    return e;
 }
 

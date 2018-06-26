@@ -3,6 +3,7 @@
 
 #include "pes/event.hh"
 #include "pes/unfolding.hh"
+#include "omp.h"
 
 namespace dpu
 {
@@ -39,6 +40,7 @@ public :
    /// event that created this process. \p u is the unfolding this process
    /// belongs to.
    inline Process (Event *creat, Unfolding *u);
+   inline ~Process();
 
    /// pretty print of the process' events
    void dump ();
@@ -79,6 +81,8 @@ public :
    struct {
       unsigned events;
    } counters;
+
+   omp_lock_t plock;
 
 private :
    /// Pointer to the unfolding this process belongs to
