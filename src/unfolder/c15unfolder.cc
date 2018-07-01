@@ -54,6 +54,9 @@ C15unfolder::C15unfolder (Altalgo a, unsigned kbound, unsigned maxcts) :
    omp_init_lock(&ulock);
    omp_init_lock(&clock);
    omp_init_lock(&rlock);
+   omp_init_lock(&slock);
+   omp_init_lock(&pplock);
+
 }
 
 C15unfolder::~C15unfolder ()
@@ -64,6 +67,8 @@ C15unfolder::~C15unfolder ()
    omp_destroy_lock(&ulock);
    omp_destroy_lock(&clock);
    omp_destroy_lock(&rlock);
+   omp_destroy_lock(&slock);
+   omp_destroy_lock(&pplock);
 }
 
 stid::ExecutorConfig C15unfolder::prepare_executor_config () const
@@ -364,9 +369,9 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //     Event * last_old_trail = tsk->trail.empty() ? nullptr : tsk->trail.peek();
 //     int last_trail_size = tsk->trail.size();
 
-//      omp_set_lock(&ulock);
+      omp_set_lock(&pplock);
          b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec); // Phai xu ly voi d,c của task-> DONE!
-//      omp_unset_lock(&ulock);
+      omp_unset_lock(&pplock);
       // b could be false because of SSBs or defects - TAM BO HIEN THI THONG TIN CHO DE THEO DOI CAC THONG TIN KHAC
 //        PRINT ("c15u: explore: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
        #ifdef VERB_LEVEL_TRACE
@@ -475,7 +480,7 @@ void C15unfolder::explore_para ()
    report_init (); // init report trong c15
    start_time = time (nullptr);
 
-   omp_set_num_threads(5);
+   omp_set_num_threads(10);
    #pragma omp parallel firstprivate(tsk)
    {
       #pragma omp single
@@ -855,9 +860,11 @@ void C15unfolder::compute_cex_lock (Event *e, Event **head)
       ASSERT (!em or em->action.type == ActionType::MTXUNLK);
 
       // 7. (action, ep, em) is a possibly new event
-      omp_set_lock(&ulock);
+//      omp_set_lock(&ulock);
+      omp_set_lock(&ep->process()->plock);
          ee = u.event (e->action, ep, em);
-      omp_unset_lock(&ulock);
+      omp_unset_lock(&ep->process()->plock);
+//      omp_unset_lock(&ulock);
 
 //      PRINT ("c15u: cex-lock:  new cex: %s", ee->str().c_str());
 
