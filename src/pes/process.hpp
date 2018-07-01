@@ -68,7 +68,7 @@ Event *Process::add_event_0p (Event *creat)
 {
    Event *e;
 
-   // lock the process
+   // lock the process for only THSTART as this process is a new one.
    omp_set_lock(&plock);
 
    ASSERT (creat); // insertion of bottom is done elsewhere
@@ -99,7 +99,7 @@ Event *Process::add_event_0p (Event *creat)
    last = e;
    counters.events++;
 
-   // unlock the process
+//   // unlock the process
    omp_unset_lock(&plock);
    return e;
 }
@@ -109,7 +109,7 @@ Event *Process::add_event_1p (Action ac, Event *p)
 {
    Event *e;
 
-   omp_set_lock(&plock);
+//   omp_set_lock(&plock);
 
    ASSERT (last); // we have a last
    ASSERT (pid() == last->pid()); // last point inside us
@@ -138,7 +138,7 @@ Event *Process::add_event_1p (Action ac, Event *p)
    last = e;
 
    //unlock the process
-   omp_unset_lock(&plock);
+//   omp_unset_lock(&plock);
 
    return e;
 }
@@ -149,7 +149,7 @@ Event * Process::add_event_2p (Action ac, Event *p, Event *m)
    Event *e;
 
    // lock the process to add new event
-   omp_set_lock(&plock);
+//   omp_set_lock(&plock);
 
    ASSERT (last); // we have a last
    ASSERT (pid() == last->pid()); // last point inside us
@@ -178,7 +178,7 @@ Event * Process::add_event_2p (Action ac, Event *p, Event *m)
    last = e;
 
    // unlock the process
-   omp_unset_lock(&plock);
+//   omp_unset_lock(&plock);
 
    return e;
 }
