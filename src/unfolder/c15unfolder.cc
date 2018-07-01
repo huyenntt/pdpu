@@ -352,7 +352,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
      // if requested, record the replay sequence
 //     if (record_replays) replays.push_back (replay);
 //   if (record_replays) replays.push_back (tsk->rep); // always push a new replay to list of replays
-           counters.runs++;
+//           counters.runs++;
      i = s.get_rt()->trace.num_ths;
      if (counters.stid_threads < i)
         counters.stid_threads = i;
@@ -369,9 +369,12 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //     Event * last_old_trail = tsk->trail.empty() ? nullptr : tsk->trail.peek();
 //     int last_trail_size = tsk->trail.size();
 
-      omp_set_lock(&pplock);
+      omp_set_lock(&clock);
          b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec); // Phai xu ly voi d,c của task-> DONE!
-      omp_unset_lock(&pplock);
+      omp_unset_lock(&clock);
+
+      // Chi tang run khi nao stream_to_events phat sinh event moi, ko thi thoi
+
       // b could be false because of SSBs or defects - TAM BO HIEN THI THONG TIN CHO DE THEO DOI CAC THONG TIN KHAC
 //        PRINT ("c15u: explore: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
        #ifdef VERB_LEVEL_TRACE
@@ -480,7 +483,7 @@ void C15unfolder::explore_para ()
    report_init (); // init report trong c15
    start_time = time (nullptr);
 
-   omp_set_num_threads(10);
+   omp_set_num_threads(20);
    #pragma omp parallel firstprivate(tsk)
    {
       #pragma omp single
@@ -498,7 +501,7 @@ void C15unfolder::explore_para ()
 
    // statistics (all for c15unfolder)
 //   counters.ssbs = tsk->dis.ssb_count;
-   counters.maxconfs = counters.runs - counters.ssbs;
+   counters.maxconfs = counters.runs - counters.ssbs; // Buon cuoi that, tai sao lai cu lon hon so thuc 1 lan nhi???
    counters.avg_max_trail_size /= counters.runs;
    PRINT ("c15u: explore: done!");
    ASSERT (counters.ssbs == 0 or altalgo != Altalgo::OPTIMAL);

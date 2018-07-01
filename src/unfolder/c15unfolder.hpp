@@ -97,6 +97,7 @@ bool C15unfolder::stream_match_trail
          ASSERT (t[i]->flags.crb);
          SHOW (it.str(), "s");
          SHOW (t[i]->str().c_str(), "s");
+
          // we let the pidpool know that we saw a THCREAT
 
 //         omp_set_lock(&pplock);
@@ -234,6 +235,12 @@ bool C15unfolder::stream_to_events
    Pidmap pidmap;
    Defect defect;
    uint64_t mtx_id;
+   unsigned long events_old = 0, events_new = 0;
+//   events_old = 0;
+//   events_new = 0;
+
+   for (int i = 0; i < u.num_procs(); i++)
+      events_old += u.proc(i)->counters.events;
 
    // NOTE: all of these checks can be done later
    // disset => trail
@@ -280,7 +287,6 @@ bool C15unfolder::stream_to_events
       // need to insert bottom; our "last blue event" (e) is bottom
       // Khong can phai lock o day vi luc nay chi co 1 thread duy nhat
       ASSERT (c.empty());
-      PRINT ("Bottom creation");
       e = u.event (nullptr); // bottom
       c.fire (e);
 //      ASSERT (!e->flags.ind);
@@ -559,11 +565,16 @@ bool C15unfolder::stream_to_events
       }
    }
 
-//   PRINT ("At the end of stream_to_events");
-//   for (unsigned i = 0; i < Unfolding::MAX_PROC; i++)
-//     {
-//         PRINT ("start[%d] %p", i, start[i]);
-//     }
+   for (int i = 0; i < u.num_procs(); i++)
+         events_new += u.proc(i)->counters.events;
+
+   // if this function creats new events, it is a new maximal configuration. Otherwise, it is not counted as MC.
+   if (events_new > events_old)
+   {
+//      omp_set_lock(&clock);
+         counters.runs++;
+//      omp_unset_lock(&clock);
+   }
 
 //   PRINT ("trail size: %lu",t->size());
 //   if (verb_debug) pidmap.dump (true); // KO can dump pidmap
