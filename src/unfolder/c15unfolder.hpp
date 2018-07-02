@@ -569,10 +569,10 @@ bool C15unfolder::stream_to_events
          events_new += u.proc(i)->counters.events;
 
    // if this function creats new events, it is a new maximal configuration. Otherwise, it is not counted as MC.
-   if (events_new > events_old)
+   if (events_new == events_old)
    {
 //      omp_set_lock(&clock);
-         counters.runs++;
+         counters.dupli++;
 //      omp_unset_lock(&clock);
    }
 

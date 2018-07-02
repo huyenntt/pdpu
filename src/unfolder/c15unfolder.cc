@@ -29,7 +29,7 @@ namespace dpu
 C15unfolder::C15unfolder (Altalgo a, unsigned kbound, unsigned maxcts) :
    Unfolder (prepare_executor_config ()),
    report (),
-   record_replays (false),
+   record_replays (true), // Huyen changed to true
    replays (),
    timeout (0),
    altalgo (a),
@@ -352,7 +352,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
      // if requested, record the replay sequence
 //     if (record_replays) replays.push_back (replay);
 //   if (record_replays) replays.push_back (tsk->rep); // always push a new replay to list of replays
-//           counters.runs++;
+     counters.runs++;
      i = s.get_rt()->trace.num_ths;
      if (counters.stid_threads < i)
         counters.stid_threads = i;
@@ -483,7 +483,7 @@ void C15unfolder::explore_para ()
    report_init (); // init report trong c15
    start_time = time (nullptr);
 
-   omp_set_num_threads(20);
+   omp_set_num_threads(10);
    #pragma omp parallel firstprivate(tsk)
    {
       #pragma omp single
@@ -501,7 +501,7 @@ void C15unfolder::explore_para ()
 
    // statistics (all for c15unfolder)
 //   counters.ssbs = tsk->dis.ssb_count;
-   counters.maxconfs = counters.runs - counters.ssbs; // Buon cuoi that, tai sao lai cu lon hon so thuc 1 lan nhi???
+   counters.maxconfs = counters.runs - counters.ssbs - counters.dupli; // Buon cuoi that, tai sao lai cu lon hon so thuc 1 lan nhi???
    counters.avg_max_trail_size /= counters.runs;
    PRINT ("c15u: explore: done!");
    ASSERT (counters.ssbs == 0 or altalgo != Altalgo::OPTIMAL);

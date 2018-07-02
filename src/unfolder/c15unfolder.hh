@@ -38,6 +38,7 @@ public:
       long unsigned runs = 0;
       long unsigned ssbs = 0;
       long unsigned maxconfs = 0;
+      long unsigned dupli = 0;
       long unsigned stid_threads = 0;
       float avg_max_trail_size = 0;
       struct {
