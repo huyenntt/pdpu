@@ -367,7 +367,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
       * considered for alternatives before.
       */
 //     Event * last_old_trail = tsk->trail.empty() ? nullptr : tsk->trail.peek();
-//     int last_trail_size = tsk->trail.size();
+     int last_trail_size = tsk->trail.size();
 
       omp_set_lock(&clock);
          b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec); // Phai xu ly voi d,c của task-> DONE!
@@ -434,11 +434,15 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
                 // Here we create a new task to explore new branch with the alternative found
                 PRINT ("c15: explore: an alternative found");
                 replay.build_from (tsk->trail, tsk->conf, tsk->add);
-                if (rpl_existed (replay,replays))
+                if (tsk->trail.size() <= last_trail_size)
                 {
-                    PRINT ("c15u: explore: task already exists");
-                    continue;
-                }
+                   if (rpl_existed (replay,replays))
+                   {
+                       PRINT ("c15u: explore: task already exists");
+                       continue;
+                   }
+                } // end of if trail size
+
                 omp_set_lock(&rlock);
                    replays.push_back(replay);
                 omp_unset_lock(&rlock);
