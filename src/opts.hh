@@ -29,6 +29,7 @@ extern bool strace;
 extern bool dosleep;
 extern unsigned timeout;
 extern unsigned drfreq;
+extern unsigned cores;
 
 
 void parse (int argc, char **argv_);

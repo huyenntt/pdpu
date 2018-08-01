@@ -430,6 +430,8 @@ void print_por_stats (C15unfolder &unf, Resources &res)
          res.walltime / 1000000.0,
          res.maxrss / 1024,
          unf.counters.timeout ? " (timeout)" : "");
+
+PRINT ("pdpu: summary: %u cores, %.3f sec", opts:: cores, res.walltime / 1000000.0);
 }
 
 void print_dra_stats (DataRaceAnalysis &dra)
@@ -616,7 +618,7 @@ int main (int argc, char **argv)
          unf->u.print_dot (opts::dotpath);
       }
 
-      PRINT ("UNFOLDING: ==============");
+//      PRINT ("UNFOLDING: ==============");
 //      if (verb_debug) unf->u.dump ();
 
       // save the defects report if we got defects during the POR analysis

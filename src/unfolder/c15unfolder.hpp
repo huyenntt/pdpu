@@ -50,7 +50,7 @@ bool C15unfolder::stream_match_trail
    count = 0;
    pid = 0;
 
-   PRINT ("c15: stream-Match_trail: trail: %zu", t.size());
+//   PRINT ("c15: stream-Match_trail: trail: %zu", t.size());
 
    // match trail events as long as the trail AND the stream contain events
    for (i = 0; i < t.size() - 1 and it != end; ++it)
@@ -296,7 +296,7 @@ bool C15unfolder::stream_to_events
    }
 
    // we create (or retrieve) an event for every action remaining in the stream
-   PRINT ("c15: s_t_e: creating events for the rest of stream");
+//   PRINT ("c15: s_t_e: creating events for the rest of stream");
    for (; it != end; ++it)
    {
 
@@ -305,7 +305,7 @@ bool C15unfolder::stream_to_events
       switch (it.type())
       {
       case RT_MTXLOCK :
-         PRINT ("LOCK");
+//         PRINT ("LOCK");
          omp_set_lock(&e->process()->plock);
          e->flags.crb = 1;
 
@@ -327,7 +327,7 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_MTXUNLK :
-         PRINT ("UNLOCK");
+//         PRINT ("UNLOCK");
          omp_set_lock(&e->process()->plock);
          e->flags.crb = 1;
          mtx_id = it.addr() - (uint64_t) exe->get_runtime()->mem.begin;
@@ -343,7 +343,7 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_THCTXSW :
-         PRINT ("CTXSW");
+//         PRINT ("CTXSW");
          // No touch to process, so no need to lock anything
 
          omp_set_lock(&e->process()->plock);
@@ -373,7 +373,7 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_THCREAT :
-         PRINT ("CREAT");
+//         PRINT ("CREAT");
       // attention for bottom
          omp_set_lock(&e->process()->plock);
 
@@ -422,7 +422,7 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_THEXIT :
-         PRINT ("EXIT");
+//         PRINT ("EXIT");
          omp_set_lock(&e->process()->plock);
             e->flags.crb = 1;
             e = u.event ({.type = ActionType::THEXIT}, e);
@@ -435,7 +435,7 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_THJOIN :
-         PRINT ("JOIN");
+//         PRINT ("JOIN");
 
          e->flags.crb = 1;
 
@@ -456,7 +456,7 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_ABORT :
-         PRINT ("ABORT");
+//         PRINT ("ABORT");
          if (report.nr_abort >= CONFIG_MAX_DEFECT_REPETITION) break;
          report.nr_abort++;
          defect.description = "The program called abort()";
@@ -468,7 +468,7 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_EXITNZ :
-         PRINT ("EXITNZ");
+//         PRINT ("EXITNZ");
          if (report.nr_exitnz >= CONFIG_MAX_DEFECT_REPETITION) break;
          report.nr_exitnz++;
          defect.description =
@@ -481,19 +481,19 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_RD8 :
-         PRINT ("RD8");
+//         PRINT ("RD8");
          if (! e->flags.crb)
             //e->data<Redbox>().push_back
             //   ({.type = ActionType::RD8, .addr = it.addr(), .val = *it.val()});
          break;
       case RT_RD16 :
-         PRINT ("RD16");
+//         PRINT ("RD16");
          if (! e->flags.crb)
             //e->data<Redbox>().push_back
             //   ({.type = ActionType::RD16, .addr = it.addr(), .val = *it.val()});
          break;
       case RT_RD32 :
-         PRINT ("RD32");
+//         PRINT ("RD32");
          if (! e->flags.crb)
             //e->data<Redbox>().push_back
             //   ({.type = ActionType::RD32, .addr = it.addr(), .val = *it.val()});
@@ -505,7 +505,7 @@ bool C15unfolder::stream_to_events
             //   ({.type = ActionType::RD64, .addr = it.addr(), .val = *it.val()});
          break;
       case RT_RD128 :
-         PRINT ("RD128");
+//         PRINT ("RD128");
          ASSERT (it.val_size() == 2);
          if (! e->flags.crb)
          {

@@ -334,15 +334,15 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
    start = time (nullptr);
    Task *ntsk;
 
-   PRINT ("c15::explore: call get_por_analysis for tunfolder");
+   PRINT ("c15u::explore: call get_por_analysis for tunfolder");
    unfolder = _get_por_analysis();
 //   replay.build_from (tsk->trail, tsk->conf, tsk->add);
 //   PRINT ("replay: %s", replay.str().c_str());
-   PRINT ("replay: %s", tsk->rep.str().c_str());
+//   PRINT ("replay: %s", tsk->rep.str().c_str());
 
 //   unfolder->_set_replay_sleepset(replay, tsk->dis, tsk->add);
    unfolder->_set_replay_sleepset(tsk->rep, tsk->dis, tsk->add);
-   PRINT ("c15: explore: call run from steroids");
+   PRINT ("c15u: explore: call run from steroids");
    unfolder->_exec->run();
 
    // Get a trace from stream
@@ -358,7 +358,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
         counters.stid_threads = i;
    omp_unset_lock(&clock);
 
-     s.print ();
+//     s.print ();
 //      tsk->trail.dump();
 
      PRINT ("c15u: explore: Stream to events:");
@@ -385,7 +385,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
        #endif
 
        // add conflicting extensions
-       PRINT ("c15: explore: compute cex");
+       PRINT ("c15u: explore: compute cex");
           compute_cex (tsk->conf, &e);  // Truy cap den unfolding cuar C15unfolder, lock se dung ben trong ham
 
        omp_set_lock(&clock);
@@ -393,7 +393,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
        omp_unset_lock(&clock);
 
        // backtrack until we find some right subtree to explore
-       PRINT("c15: explore: backtrach the trail============================");
+       PRINT("c15u: explore: backtrach the trail");
 
 //       while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
        while (tsk->trail.size() > 0)
@@ -420,7 +420,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 
           if (! unfolder->might_find_alternative (tsk->conf, tsk->dis, e))
           {
-             PRINT ("c15: epxplore: no possiblility to get an alternative");
+//             PRINT ("c15: epxplore: no possiblility to get an alternative");
                 continue;
           }
 
@@ -432,13 +432,13 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
           if (unfolder->find_alternative (tsk->trail, tsk->conf, tsk->dis, tsk->add, u))
           {
                 // Here we create a new task to explore new branch with the alternative found
-                PRINT ("c15: explore: an alternative found");
+                PRINT ("c15u: explore: an alternative found");
                 replay.build_from (tsk->trail, tsk->conf, tsk->add);
                 if (tsk->trail.size() <= last_trail_size)
                 {
                    if (rpl_existed (replay,replays))
                    {
-                       PRINT ("c15u: explore: task already exists");
+//                       PRINT ("c15u: explore: task already exists");
                        continue;
                    }
                 } // end of if trail size
@@ -455,8 +455,8 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
                    explore_one_maxconfig(ntsk);
                 }
            } // end of if
-          else
-             PRINT ("c15: epxplore: no alt found");
+//          else
+//             PRINT ("c15u: epxplore: no alt found");
 
           tsk->dis.unadd ();
 
@@ -466,7 +466,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
           counters.ssbs += tsk->dis.ssb_count;
        omp_unset_lock(&clock);
 
-      PRINT ("c15: explore: stop backtracking==========================");
+      PRINT ("c15u: explore: stop backtracking==========================");
 }
 //===========================epxplore==================
 void C15unfolder::explore_para ()
@@ -487,7 +487,10 @@ void C15unfolder::explore_para ()
    report_init (); // init report trong c15
    start_time = time (nullptr);
 
-   omp_set_num_threads(10);
+//   omp_set_num_threads(5);
+//   PRINT ("CORESSSS %u", opts::cores);
+   omp_set_num_threads(opts::cores);
+
    #pragma omp parallel firstprivate(tsk)
    {
       #pragma omp single
@@ -695,7 +698,7 @@ void C15unfolder:: explore_seq()
    for (int i = 0; i < rpl_list.size(); i++)
       PRINT ("%s", rpl_list[i].str().c_str());
 
-   counters.maxconfs = counters.runs - counters.ssbs;
+   counters.maxconfs = counters.runs - counters.ssbs - counters.dupli;
    counters.avg_max_trail_size /= counters.runs;
    PRINT ("c15u: explore: done!, number of tasks: %d",tcount);
    ASSERT (counters.ssbs == 0 or altalgo != Altalgo::OPTIMAL); // Xem lai cho nay

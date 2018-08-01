@@ -34,6 +34,7 @@ bool strace;
 bool dosleep;
 unsigned timeout;
 unsigned drfreq;
+unsigned cores;
 
 void parse (int argc, char **argv_)
 {
@@ -57,6 +58,7 @@ void parse (int argc, char **argv_)
 			{"maxcts", required_argument, nullptr, 'x'},
 			{"timeout", required_argument, nullptr, 't'},
 			{"drfreq", required_argument, nullptr, 'f'},
+			{"cores", required_argument, nullptr, 'c'},
 			{0, 0, 0, 0}};
 
    // default options
@@ -76,11 +78,12 @@ void parse (int argc, char **argv_)
    dosleep = false;
    timeout = 0;
    drfreq = 10;
+   cores = 2;
 
 	// parse the command line, supress automatic error messages by getopt
 	opterr = 0;
 	while (1) {
-		op = getopt_long (argc, argv_, "0:a:k:vhVm:s:O:x:", longopts, nullptr);
+		op = getopt_long (argc, argv_, "0:a:k:vhVm:s:O:x:c:", longopts, nullptr);
 		if (op == -1) break;
 		switch (op) {
 		case '0' :
@@ -166,6 +169,10 @@ void parse (int argc, char **argv_)
          help ();
 		case 'V' :
          version ();
+		case 'c' :
+		   cores = strtol (optarg, &endptr, 10);
+		   PRINT ("CORRRRRe=%d",cores);
+		   break;
       default :
          usage (1);
       }
@@ -290,6 +297,9 @@ void print_options ()
          stacksize / (1 << 20));
    P (" --dump-instr=FILE.ll");
    P ("   Dump instrumented LLVM bytecode to FILE.ll.");
+
+   P (" Parallel setting:");
+   P (" -c Number of processing cores");
 }
 
 #undef P
@@ -374,6 +384,7 @@ void dump ()
    PRINT (" maxcts         %u", maxcts);
    PRINT (" strace         %u", strace);
    PRINT (" dosleep        %u", dosleep);
+//   PRINT (" cores          %u", cores);
    PRINT ("== end arguments ==");
 }
 
