@@ -253,7 +253,7 @@ void Disset::unjust_add (Elem *e)
    // we add e to the head of the list
 
    ASSERT (e);
-   PRINT (" dis: unjust_add  %s", e->e->str().c_str());
+//   PRINT (" dis: unjust_add  %s", e->e->str().c_str());
    ASSERT (! unjust_contains (e->e));
    e->next = unjust;
    e->prev = nullptr;
@@ -299,7 +299,7 @@ void Disset::add (Event *e, int idx)
    // the top_idx variable
 
    ASSERT (e);
-   PRINT (" dis: add: ");
+//   PRINT (" dis: add: ");
 //   ASSERT (!e->flags.ind); // e is not in D yet
    ASSERT (!inD(e));
    ASSERT (idx >= 0);
@@ -344,7 +344,7 @@ bool Disset::trail_push (Event *e, int idx)
    if (inD(e))
    {
       ssb_count++;
-      PRINT ("d.ssb_count %d =================", ssb_count);
+//      PRINT ("d.ssb_count %d =================", ssb_count);
 
 #ifdef VERB_LEVEL_TRACE
       unsigned u, j;
@@ -361,7 +361,7 @@ bool Disset::trail_push (Event *e, int idx)
                  "|D| %u (%u just, %u unjust)",
                  ssb_count, idx, u + j, j, u);
 #endif
-      PRINT ("dis: trail_push: add event already in D");
+//      PRINT ("dis: trail_push: add event already in D");
             return false;
    }
 
@@ -374,8 +374,8 @@ bool Disset::trail_push (Event *e, int idx)
       {
 //         DEBUG ("dis: unadd: justifying %08x (disabler %08x, idx %d)",
 //               el->e->uid(), e->uid(), idx);
-         PRINT ("dis: unadd: justifying %08x (disabler %08x, idx %d)",
-                       el->e->uid(), e->uid(), idx);
+//         PRINT ("dis: unadd: justifying %08x (disabler %08x, idx %d)",
+//                       el->e->uid(), e->uid(), idx);
          unjust_remove (el);
          just_push (el);
          el->disabler = idx;
@@ -422,7 +422,7 @@ void Disset::trail_pop (int idx)
       ASSERT (idx == top_disabler);
       ASSERT (! just_isempty ());
       ASSERT (idx == just_peek()->disabler);
-      PRINT (" dis: trail_pop: un-justifying %08x", just_peek()->e->uid());
+//      PRINT (" dis: trail_pop: un-justifying %08x", just_peek()->e->uid());
       unjust_add (just_pop ());
       top_disabler = just_isempty () ? -1 : just_peek()->disabler;
    }

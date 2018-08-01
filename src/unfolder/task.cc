@@ -22,7 +22,7 @@ Task:: Task(Replay rpl, const Disset &d, const Cut &j, const Trail &t, const Con
       trail (t),
       conf (c)
 {
-   PRINT ("task: ctor: (replay,dis,add, trail)");
+//   PRINT ("task: ctor: (replay,dis,add, trail)");
 }
 
 //Task:: Task(int tcount, const Disset &d, const Cut &j, const Trail &t, const Config &c) :
