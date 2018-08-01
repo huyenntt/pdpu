@@ -46,12 +46,15 @@ $(STIDROOT)/rt/rt.bc :
 
 
 run: dist
-	./dist/bin/dpu benchmarks/basic/huyen.c  -k2 --callgrind
+	./dist/bin/dpu benchmarks/basic/huyen.c  -k0 -c10
 	$(MAKE) u.pdf
+run1: dist
+	./dist/bin/dpu benchmarks/basic/file_system.c -k0
+	#$(MAKE) u.pdf
 
 run2: dist
-	./dist/bin/dpu experiments/cav18/bench/multiprodcon.c -- p main4
-	#$(MAKE) u.svg
+	./dist/bin/dpu benchmarks/basic/multiprodcon.c --dot mpc.dot -k3
+	$(MAKE) mpc.pdf
 	
 # run on benchmarks of table 1	
 rundisp: dist
