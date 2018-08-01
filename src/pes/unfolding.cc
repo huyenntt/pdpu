@@ -147,7 +147,7 @@ Event *Unfolding::event (Action ac, Event *p, Event *m)
    e = find2 (&ac, p, m);
    if (e)
       {
-         PRINT (" unf: find: e is already there: %s", e->str().c_str());
+//         PRINT (" unf: find: e is already there: %s", e->str().c_str());
 
          return e;
       }

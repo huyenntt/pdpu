@@ -17,7 +17,7 @@ Event::Event (Event *creat, bool bf) :
    // the first THSTART needs to have a null process predecessor
    ASSERT (pre_proc() == (creat ? creat->cone[pid()] : nullptr));
 
-   omp_init_lock(&elock);
+//   omp_init_lock(&elock);
    //DEBUG ("Event.ctor: %s", str().c_str());
    //DEBUG ("Event.ctor: e %-16p %s", this, cone.str().c_str());
 }
@@ -35,7 +35,7 @@ Event::Event (Action ac, bool bf) :
    ASSERT (pre_proc() != 0);
    ASSERT (pre_other() == 0);
 
-   omp_init_lock(&elock);
+//   omp_init_lock(&elock);
 
    //DEBUG ("Event.ctor: %s", str().c_str());
    //DEBUG ("Event.ctor: e %-16p %s", this, cone.str().c_str());
@@ -57,9 +57,9 @@ Event::Event (Action ac, Event *m, bool bf) :
    ASSERT (pre_proc() != 0);
    ASSERT (pre_other() == m);
 
-   omp_init_lock(&elock);
+//   omp_init_lock(&elock);
 
-   PRINT ("Event.ctor: %s", str().c_str());
+//   PRINT ("Event.ctor: %s", str().c_str());
    //DEBUG ("Event.ctor: e %-16p %s", this, cone.str().c_str());
 }
 

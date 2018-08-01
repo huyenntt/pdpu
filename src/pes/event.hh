@@ -38,7 +38,7 @@ public:
 
    ~Event ();
 
-   omp_lock_t elock;
+//   omp_lock_t elock;
 
    struct {
       /// True iff this event is the first one in its own Eventbox
