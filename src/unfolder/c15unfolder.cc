@@ -345,18 +345,27 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
    PRINT ("c15u: explore: call run from steroids");
    unfolder->_exec->run();
 
+   PRINT ("finished call exec run");
    // Get a trace from stream
    stid::action_streamt s (unfolder->_exec->get_trace ());
+
+   PRINT ("update clock");
 
    omp_set_lock(&clock);
      // if requested, record the replay sequence
 //     if (record_replays) replays.push_back (replay);
 //   if (record_replays) replays.push_back (tsk->rep); // always push a new replay to list of replays
      counters.runs++;
+   omp_unset_lock(&clock);
+
      i = s.get_rt()->trace.num_ths;
      if (counters.stid_threads < i)
-        counters.stid_threads = i;
-   omp_unset_lock(&clock);
+     {
+        omp_set_lock(&clock);
+           counters.stid_threads = i;
+        omp_unset_lock(&clock);
+     }
+
 
 //     s.print ();
 //      tsk->trail.dump();
@@ -369,9 +378,9 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //     Event * last_old_trail = tsk->trail.empty() ? nullptr : tsk->trail.peek();
      int last_trail_size = tsk->trail.size();
 
-      omp_set_lock(&clock);
+//      omp_set_lock(&clock);
          b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec); // Phai xu ly voi d,c của task-> DONE!
-      omp_unset_lock(&clock);
+//      omp_unset_lock(&clock);
 
       // Chi tang run khi nao stream_to_events phat sinh event moi, ko thi thoi
 
@@ -504,7 +513,9 @@ void C15unfolder::explore_para ()
       } // end of single
    } // end of parallel
 
-//   #pragma omp taskwait
+
+   // Synchronize all threads here to display the statistic infos
+   //   #pragma omp taskwait
 
    // statistics (all for c15unfolder)
 //   counters.ssbs = tsk->dis.ssb_count;

@@ -260,9 +260,9 @@ bool C15unfolder::stream_to_events
    DEBUG ("c15u: s2e: c %s t %zd", c.str().c_str(), t ? t->size() : -1);
 
    // reset the pidpool and the pidmap for this execution
-//   omp_set_lock(&pplock);
+   omp_set_lock(&pplock); // lock pidpoll for the whole process of converting stream to events
       pidpool.clear ();
-//   omp_unset_lock(&pplock);
+
 
    // skip the first context switch to pid 0, if present
    if (it != end and it.type () == RT_THCTXSW)
@@ -565,15 +565,17 @@ bool C15unfolder::stream_to_events
       }
    }
 
+   omp_unset_lock(&pplock); // release pplock
+
    for (int i = 0; i < u.num_procs(); i++)
          events_new += u.proc(i)->counters.events;
 
    // if this function creats new events, it is a new maximal configuration. Otherwise, it is not counted as MC.
    if (events_new == events_old)
    {
-//      omp_set_lock(&clock);
+      omp_set_lock(&clock);
          counters.dupli++;
-//      omp_unset_lock(&clock);
+      omp_unset_lock(&clock);
    }
 
 //   PRINT ("trail size: %lu",t->size());
