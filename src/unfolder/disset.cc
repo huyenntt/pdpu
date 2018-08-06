@@ -5,27 +5,25 @@
 namespace dpu
 {
 
-void Disset:: set_flags()
-{
-   for (auto &ele : stack)
-   {
-//      omp_set_lock(&ele.e->elock);
-         ele.e->flags.ind = 1;
-//      omp_unset_lock(&ele.e->elock);
-   }
-}
-
-void Disset:: unset_flags()
-{
-//   PRINT ("disset: unset_flags: ...");
-
-   for (auto &ele : stack)
-   {
-//       omp_set_lock(&ele.e->elock);
-          ele.e->flags.ind = 0;
-//       omp_unset_lock(&ele.e->elock);
-   }
-}
+//void Disset:: set_flags()
+//{
+//   for (auto &ele : stack)
+//   {
+//
+//         ele.e->flags.ind = 1;
+////      omp_unset_lock(&ele.e->elock);
+//   }
+//}
+//
+//void Disset:: unset_flags()
+//{
+////   PRINT ("disset: unset_flags: ...");
+//
+//   for (auto &ele : stack)
+//   {
+//          ele.e->flags.ind = 0;
+//   }
+//}
 
 //bool Disset:: operator== (Disset &other)
 //{

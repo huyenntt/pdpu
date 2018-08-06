@@ -126,8 +126,8 @@ public:
 
    inline int inD (const Event *e) const;
 
-   void set_flags();
-   void unset_flags();
+//   void set_flags();
+//   void unset_flags();
 
 //   bool operator== (Disset &other);
 
