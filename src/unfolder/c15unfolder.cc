@@ -156,22 +156,27 @@ std::unique_ptr<Tunfolder> C15unfolder:: _get_por_analysis () // Lay cac tham so
      return tunf;
 }
 //===============================
-bool C15unfolder:: existed (Task *ntsk, std::vector<Task> &full_tasks)
-{
-   for (auto &t: full_tasks)
-      if (*ntsk == t)
-         return true;
-
-   return false;
-}
+//bool C15unfolder:: existed (Task *ntsk)
+//{
+//   for (auto &t: tasks)
+//      if (*ntsk == t)
+//         return true;
+//
+//   return false;
+//}
 //=================================
 bool C15unfolder:: rpl_existed (Replay rpl, std::vector<Replay> &rpl_list)
 {
+   omp_set_lock(&rlock);
    for (auto &r : rpl_list)
 //      if ( (rpl == r) or rpl.is_derived(r))
    if (rpl == r)
-         return true;
+   {
+      omp_unset_lock(&rlock);
+      return true;
+   }
 
+   omp_unset_lock(&rlock);
    return false;
 }
 
@@ -199,11 +204,11 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
    PRINT ("c15u: explore: call run from steroids");
    unfolder->_exec->run();
 
-   PRINT ("finished call exec run");
+//   PRINT ("finished call exec run");
    // Get a trace from stream
    stid::action_streamt s (unfolder->_exec->get_trace ());
 
-   PRINT ("update counters");
+//   PRINT ("update counters");
 
    omp_set_lock(&clock);
      // if requested, record the replay sequence
@@ -251,14 +256,12 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
        PRINT ("c15u: explore: compute cex");
           compute_cex (tsk->conf, &e);  // Truy cap den unfolding cuar C15unfolder, lock se dung ben trong ham
 
-          PRINT ("Co phai chet o cho nay ko?");
-
        omp_set_lock(&clock);
           counters.avg_max_trail_size += tsk->trail.size();
        omp_unset_lock(&clock);
 
        // backtrack until we find some right subtree to explore
-       PRINT("c15u: explore: backtrach the trail");
+       PRINT("c15u: explore: backtrack the trail");
 
 //       while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
        while (tsk->trail.size() > 0)
@@ -306,7 +309,18 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //                       PRINT ("c15u: explore: task already exists");
                        continue;
                    }
+//                   if (existed (tsk))
+//                   {
+//                        PRINT ("c15u: explore: task already exists");
+//                        continue;
+//                   }
                 } // end of if trail size
+
+//                if (rpl_existed (replay,replays))
+//                {
+////                       PRINT ("c15u: explore: task already exists");
+//                    continue;
+//                }
 
                 omp_set_lock(&rlock);
                    replays.push_back(replay);
@@ -315,6 +329,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
                 ntsk = new Task(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
 //                ntsk = new Task(tsk->dis, tsk->add, tsk->trail, tsk->conf);
                 // Can phai push task vafo full_tasks o day
+//                tasks.push_back(*ntsk);
                 #pragma omp task firstprivate(ntsk)
                 {
                    explore_one_maxconfig(ntsk);
@@ -344,6 +359,7 @@ void C15unfolder::explore_para ()
 //   std::queue<Task> tasks;
 //   Task *tsk = new Task(d,j,t,c);
    Task *tsk = new Task(replay,d,j,t,c);
+//   tasks.push_back(*tsk);
    time_t start_time;
 
    //   PRINT ("c15: explore: Replay at the beginning: %s", replay.str().c_str());
@@ -376,11 +392,13 @@ void C15unfolder::explore_para ()
    // statistics (all for c15unfolder)
 //   counters.ssbs = tsk->dis.ssb_count;
    omp_set_lock(&clock);
+   PRINT ("Number of duplicate: %lu", counters.dupli);
    counters.maxconfs = counters.runs - counters.ssbs - counters.dupli; // Buon cuoi that, tai sao lai cu lon hon so thuc 1 lan nhi???
    counters.avg_max_trail_size /= counters.runs;
-   omp_unset_lock(&clock);
    PRINT ("c15u: explore: done!");
+   PRINT ("NUMBER OF SSBs: %lu", counters.ssbs);
    ASSERT (counters.ssbs == 0 or altalgo != Altalgo::OPTIMAL);
+   omp_unset_lock(&clock);
 }
 //===========================explore sequence=================================
 void C15unfolder:: explore_seq()
@@ -739,9 +757,9 @@ void C15unfolder::compute_cex_lock (Event *e, Event **head)
       ASSERT (!em or em->action.type == ActionType::MTXUNLK);
 
       // 7. (action, ep, em) is a possibly new event
-//      omp_set_lock(&pplock);
+      omp_set_lock(&pplock);
          ee = u.event (e->action, ep, em);
-//      omp_unset_lock(&pplock);
+      omp_unset_lock(&pplock);
 
 //      PRINT ("c15u: cex-lock:  new cex: %s", ee->str().c_str());
 

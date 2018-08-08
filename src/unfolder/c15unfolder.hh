@@ -19,7 +19,6 @@
 #include "unfolder/alt-algorithm.hh"
 #include "unfolder/task.hh"
 #include "unfolder/tunfolder.hh"
-#include "unfolder/task.hh"
 
 #include "defectreport.hh"
 
@@ -76,12 +75,16 @@ protected:
    /// When computing k-partial alternatives, the value of k
    unsigned kpartial_bound;
 
+
    omp_lock_t ulock; // unfolding lock
    omp_lock_t clock; // counters lock
    omp_lock_t rlock; // replays lock
    omp_lock_t slock; // start lock
    omp_lock_t pplock; // pidpool lock
 //   std::vector<omp_lock_t> proc_locks;
+
+//   std::vector<Task> tasks;
+
 
 private:
    /// The comb data structure
@@ -116,7 +119,7 @@ public:
 //   void explore_para1 (); // with queue of tasks
 
    void explore_seq();
-   bool existed(Task *ntsk, std::vector<Task> &full_tasks);
+//   bool existed(Task *ntsk);
    bool rpl_existed(Replay rpl, std::vector<Replay> &rpl_list);
 
 //   void explore_origin ();

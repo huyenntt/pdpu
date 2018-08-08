@@ -109,10 +109,10 @@ bool C15unfolder::stream_match_trail
 //         omp_unset_lock(&pplock);
 
          // we record the corresponding THSTART in start[]
-//         omp_set_lock(&slock);
+         omp_set_lock(&slock);
             start[t[i]->action.val] = u.event (t[i]);
             SHOW (u.event(t[i])->str().c_str(), "s");
-//         omp_unset_lock(&slock);
+         omp_unset_lock(&slock);
 
          count = 0;
          break;
@@ -161,9 +161,9 @@ bool C15unfolder::stream_match_trail
             i++;
             ASSERT (start[pid]);
 
-//            omp_set_lock(&slock);
+            omp_set_lock(&slock);
                start[pid] = nullptr;
-//            omp_unset_lock(&slock);
+            omp_unset_lock(&slock);
          }
          else
          {
@@ -233,7 +233,6 @@ bool C15unfolder::stream_to_events
    stid::action_stream_itt it (s.begin());
    const stid::action_stream_itt end (s.end());
    Pidmap pidmap;
-//   Pidpool pidpool(u);
    Defect defect;
    uint64_t mtx_id;
    unsigned long events_old = 0, events_new = 0;
@@ -241,6 +240,8 @@ bool C15unfolder::stream_to_events
 //   events_new = 0;
 
    omp_set_lock(&pplock); // lock pidpool for the whole process of converting stream to events
+
+   //If all processes produce no new events, the configuration is not a new one -> it is a kind of duplication.
    for (int i = 0; i < u.num_procs(); i++)
       events_old += u.proc(i)->counters.events;
 
@@ -305,7 +306,7 @@ bool C15unfolder::stream_to_events
       switch (it.type())
       {
       case RT_MTXLOCK :
-         PRINT ("LOCK");
+//         PRINT ("LOCK");
 //         omp_set_lock(&e->process()->plock);
          e->flags.crb = 1;
 
@@ -329,7 +330,7 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_MTXUNLK :
-         PRINT ("UNLOCK");
+//         PRINT ("UNLOCK");
 //         omp_set_lock(&e->process()->plock);
          e->flags.crb = 1;
          mtx_id = it.addr() - (uint64_t) exe->get_runtime()->mem.begin;
@@ -349,7 +350,7 @@ bool C15unfolder::stream_to_events
          break;
 
       case RT_THCTXSW :
-         PRINT ("CTXSW");
+//         PRINT ("CTXSW");
          // No touch to process, so no need to lock anything
 
 //         omp_set_lock(&e->process()->plock);
@@ -360,9 +361,9 @@ bool C15unfolder::stream_to_events
 
          if (e)
          {
-//            omp_set_lock(&slock);
+            omp_set_lock(&slock);
                start[pidmap.get(it.id())] = nullptr;
-//            omp_unset_lock(&slock);
+            omp_unset_lock(&slock);
 
             if (d and ! d->trail_push (e, t->size()))
             {
@@ -413,7 +414,9 @@ bool C15unfolder::stream_to_events
          // Truong hop dac biet khi process duoc tao moi-> se lock khi dung proc.add_event_0p
          ee = u.event (e);//
 
+         omp_set_lock(&slock);
          start[e->action.val] = ee;
+         omp_unset_lock(&slock);
 
          ASSERT (ee->pid() == e->action.val);
          if (d and ! d->trail_push (e, t->size()))
@@ -570,6 +573,8 @@ bool C15unfolder::stream_to_events
       }
    }
 
+   omp_unset_lock(&pplock); // release pplock
+
    for (int i = 0; i < u.num_procs(); i++)
          events_new += u.proc(i)->counters.events;
 
@@ -581,7 +586,6 @@ bool C15unfolder::stream_to_events
       omp_unset_lock(&clock);
    }
 
-   omp_unset_lock(&pplock); // release pplock
 
 //   PRINT ("trail size: %lu",t->size());
 //   if (verb_debug) pidmap.dump (true); // KO can dump pidmap

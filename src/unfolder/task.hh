@@ -51,9 +51,10 @@ public:
    Task (Replay rpl, const Disset &d, const Cut &add, const Trail &t, const Config &c);
 //   Task (int tcount, const Disset &d, const Cut &add, const Trail &t, const Config &c);
 //   Task (const Disset &d, const Cut &add, const Trail &t, const Config &c);
+//   Task (const Task &other);
    Task (const Task &&other);
-//   Task& operator= (Task &&other);
-   bool operator== (Task &other);
+   Task& operator= (Task &&other);
+//   bool operator== (Task &other);
    void dump();
 
 };

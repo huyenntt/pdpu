@@ -56,6 +56,18 @@ Task:: Task (const Task &&other) :
 //   add.dump();
 }
 
+//Task:: Task (const Task &other) :
+////      tskid (other.tskid),
+//      rep (other.rep),
+//      dis (other.dis),
+//      add (other.add),
+//      trail (other.trail),
+//      conf (other.conf)
+//{
+//   PRINT ("task.cctor:Done");
+////   add.dump();
+//}
+
 // move operator
 //Task& Task:: operator= (Task &&other)
 //{
@@ -184,15 +196,15 @@ void Task:: dump()
 //   unfolder._exec->run();
 //}
 
-//  A task is duplicated when its replay is equal or just derived from the other.
-bool Task:: operator== (Task &other)
-{
-   if (add == other.add)  return true;
-
-//   if ( (rep == other.rep) or (rep.is_derived(other.rep) ) )   return true;
-
-   return false;
-}
+//  2 task are considered the same if their configs and adds are the same
+//bool Task:: operator== (Task &other)
+//{
+//   if ((conf == other.conf) && (add == other.add))  return true;
+//
+////   if ( (rep == other.rep) or (rep.is_derived(other.rep) ) )   return true;
+//
+//   return false;
+//}
 } // end of namespace
 
 
