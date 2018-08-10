@@ -75,8 +75,8 @@ CFLAGS = -Wall -std=c11 -g
 CXXFLAGS = -Wall -std=c++11 -g
 endif
 ifdef CONFIG_RELEASE
-CFLAGS = -Wall -std=c11 -O3
-CXXFLAGS = -Wall -std=c++11 -O3
+CFLAGS = -Wall -std=c11 -g #-O3
+CXXFLAGS = -Wall -std=c++11 -g #O3
 endif
 CPPFLAGS = -I $D $(LLVMCXXFLAGS) $(STIDCPPFLAGS) #$(INC)
 LDFLAGS = $(LLVMLDFLAGS) $(STIDLDFLAGS) # -dead_strip -static
