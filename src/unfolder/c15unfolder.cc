@@ -51,7 +51,7 @@ C15unfolder::C15unfolder (Altalgo a, unsigned kbound, unsigned maxcts) :
 
    // Initialize the lock for the unfolding
 //   proc_locks.reserve(MAX_PROC);
-   omp_init_lock(&ulock);
+//   omp_init_lock(&ulock);
    omp_init_lock(&clock);
    omp_init_lock(&rlock);
    omp_init_lock(&slock);
@@ -64,7 +64,7 @@ C15unfolder::~C15unfolder ()
    DEBUG ("c15u.dtor: this %p", this);
 
    // Destroy the lock of the unfolding
-   omp_destroy_lock(&ulock);
+//   omp_destroy_lock(&ulock);
    omp_destroy_lock(&clock);
    omp_destroy_lock(&rlock);
    omp_destroy_lock(&slock);
@@ -167,16 +167,16 @@ std::unique_ptr<Tunfolder> C15unfolder:: _get_por_analysis () // Lay cac tham so
 //=================================
 bool C15unfolder:: rpl_existed (Replay rpl, std::vector<Replay> &rpl_list)
 {
-   omp_set_lock(&rlock);
+//   omp_set_lock(&rlock);
    for (auto &r : rpl_list)
 //      if ( (rpl == r) or rpl.is_derived(r))
-   if (rpl == r)
-   {
-      omp_unset_lock(&rlock);
-      return true;
-   }
+      if (rpl == r)
+      {
+//      omp_unset_lock(&rlock);
+         return true;
+      }
 
-   omp_unset_lock(&rlock);
+//   omp_unset_lock(&rlock);
    return false;
 }
 
@@ -208,22 +208,23 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
    // Get a trace from stream
    stid::action_streamt s (unfolder->_exec->get_trace ());
 
-//   PRINT ("update counters");
-
-   omp_set_lock(&clock);
-     // if requested, record the replay sequence
+   // if requested, record the replay sequence
 //     if (record_replays) replays.push_back (replay);
 //   if (record_replays) replays.push_back (tsk->rep); // always push a new replay to list of replays
+
+//   PRINT ("update counters");
+   omp_set_lock(&clock);
      counters.runs++;
    omp_unset_lock(&clock);
 
      i = s.get_rt()->trace.num_ths;
+
+     omp_set_lock(&clock);
      if (counters.stid_threads < i)
      {
-        omp_set_lock(&clock);
            counters.stid_threads = i;
-        omp_unset_lock(&clock);
      }
+     omp_unset_lock(&clock);
 
 
 //     s.print ();
@@ -237,9 +238,8 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //     Event * last_old_trail = tsk->trail.empty() ? nullptr : tsk->trail.peek();
      int last_trail_size = tsk->trail.size();
 
-//      omp_set_lock(&ulock);
-         b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec); // Phai xu ly voi d,c của task-> DONE!
-//      omp_unset_lock(&ulock);
+     b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec);
+
 
       // Chi tang run khi nao stream_to_events phat sinh event moi, ko thi thoi
 
@@ -281,11 +281,12 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
              PRINT ("c15u: explore: %s: continue", explore_stat(tsk->trail,tsk->dis).c_str());
           if (tsk->trail.nr_context_switches() >= max_context_switches) continue;
 
-          // check for alternatives
+
           omp_set_lock(&clock);
              counters.alt.calls++;
           omp_unset_lock(&clock);
 
+          // check for alternatives
           if (! unfolder->might_find_alternative (tsk->conf, tsk->dis, e))
           {
 //             PRINT ("c15: epxplore: no possiblility to get an alternative");
@@ -296,7 +297,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
           tsk->dis.add (e, tsk->trail.size());
 
           // Doi j thanh tsk->add vi khi 1 alternative duoc tim thay, no se duoc luu trong j.
-//           Dung luon tsk->add de ko phai copy nua?? Ah khong, dang nao thi khi tao task moi cung can phai copy j
+//           Dung luon tsk->add de ko phai copy nua??
           if (unfolder->find_alternative (tsk->trail, tsk->conf, tsk->dis, tsk->add, u))
           {
                 // Here we create a new task to explore new branch with the alternative found
@@ -315,12 +316,6 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //                        continue;
 //                   }
                 } // end of if trail size
-
-//                if (rpl_existed (replay,replays))
-//                {
-////                       PRINT ("c15u: explore: task already exists");
-//                    continue;
-//                }
 
                 omp_set_lock(&rlock);
                    replays.push_back(replay);
@@ -341,12 +336,13 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
           tsk->dis.unadd ();
 
        } // end of while trail
+       PRINT ("c15u: explore: stop backtracking==========================");
 
        omp_set_lock(&clock);
           counters.ssbs += tsk->dis.ssb_count;
        omp_unset_lock(&clock);
 
-      PRINT ("c15u: explore: stop backtracking==========================");
+       PRINT ("c15: explore: finish one config");
 }
 //===========================epxplore==================
 void C15unfolder::explore_para ()
@@ -378,27 +374,24 @@ void C15unfolder::explore_para ()
       {
 //         PRINT ("c15: explore: task outside the omp task");
 //         tsk->dump();
-//         #pragma omp task firstprivate(tsk)
-//         {
+         #pragma omp task firstprivate(tsk)
+         {
             explore_one_maxconfig(tsk);
-//         }
+         }
       } // end of single
+
+      // Synchronize all threads here to display the statistic infos
+         #pragma omp taskwait
    } // end of parallel
 
 
-   // Synchronize all threads here to display the statistic infos
-   //   #pragma omp taskwait
-
    // statistics (all for c15unfolder)
-//   counters.ssbs = tsk->dis.ssb_count;
-   omp_set_lock(&clock);
    PRINT ("Number of duplicate: %lu", counters.dupli);
-   counters.maxconfs = counters.runs - counters.ssbs - counters.dupli; // Buon cuoi that, tai sao lai cu lon hon so thuc 1 lan nhi???
+   counters.maxconfs = counters.runs - counters.ssbs - counters.dupli;
    counters.avg_max_trail_size /= counters.runs;
    PRINT ("c15u: explore: done!");
    PRINT ("NUMBER OF SSBs: %lu", counters.ssbs);
    ASSERT (counters.ssbs == 0 or altalgo != Altalgo::OPTIMAL);
-   omp_unset_lock(&clock);
 }
 //===========================explore sequence=================================
 void C15unfolder:: explore_seq()

@@ -76,12 +76,12 @@ protected:
    unsigned kpartial_bound;
 
 
-   omp_lock_t ulock; // unfolding lock
+//   omp_lock_t ulock; // unfolding lock
    omp_lock_t clock; // counters lock
    omp_lock_t rlock; // replays lock
    omp_lock_t slock; // start lock
    omp_lock_t pplock; // pidpool lock
-//   std::vector<omp_lock_t> proc_locks;
+
 
 //   std::vector<Task> tasks;
 

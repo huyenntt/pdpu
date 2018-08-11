@@ -148,7 +148,6 @@ Event *Unfolding::event (Action ac, Event *p, Event *m)
    if (e)
       {
 //         PRINT (" unf: find: e is already there: %s", e->str().c_str());
-
          return e;
       }
 
