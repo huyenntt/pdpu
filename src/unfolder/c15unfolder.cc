@@ -268,9 +268,9 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
        {
           e = tsk->trail.pop ();
           // pop last event out of the trail/config; indicate so to the disset
-          PRINT ("c15u: explore: %s: popping: i %2zu ncs %u %s",
-                    explore_stat(tsk->trail,tsk->dis).c_str(), tsk->trail.size(), tsk->trail.nr_context_switches(),
-                    e->str().c_str());
+//          PRINT ("c15u: explore: %s: popping: i %2zu ncs %u %s",
+//                    explore_stat(tsk->trail,tsk->dis).c_str(), tsk->trail.size(), tsk->trail.nr_context_switches(),
+//                    e->str().c_str());
 
           tsk->conf.unfire (e);
           tsk->dis.trail_pop (tsk->trail.size ());
@@ -279,6 +279,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
           // context switches
           if (tsk->trail.nr_context_switches() >= max_context_switches)
              PRINT ("c15u: explore: %s: continue", explore_stat(tsk->trail,tsk->dis).c_str());
+
           if (tsk->trail.nr_context_switches() >= max_context_switches) continue;
 
 
@@ -380,8 +381,7 @@ void C15unfolder::explore_para ()
          }
       } // end of single
 
-      // Synchronize all threads here to display the statistic infos
-         #pragma omp taskwait
+      #pragma omp taskwait
    } // end of parallel
 
 
