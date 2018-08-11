@@ -193,6 +193,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
    start = time (nullptr);
    Task *ntsk;
 
+   PRINT ("c15u: explore: explore_one_config=============================");
    PRINT ("c15u::explore: call get_por_analysis for tunfolder");
    unfolder = _get_por_analysis();
 //   replay.build_from (tsk->trail, tsk->conf, tsk->add);
@@ -337,13 +338,13 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
           tsk->dis.unadd ();
 
        } // end of while trail
-       PRINT ("c15u: explore: stop backtracking==========================");
+       PRINT ("c15u: explore: stop backtracking");
 
        omp_set_lock(&clock);
           counters.ssbs += tsk->dis.ssb_count;
        omp_unset_lock(&clock);
 
-       PRINT ("c15: explore: finish one config");
+       PRINT ("c15: explore: finish one config=========================");
 }
 //===========================epxplore==================
 void C15unfolder::explore_para ()
