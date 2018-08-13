@@ -214,19 +214,16 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //     if (record_replays) replays.push_back (replay);
 //   if (record_replays) replays.push_back (tsk->rep); // always push a new replay to list of replays
 
-//   PRINT ("update counters");
+   PRINT ("update counters");
    omp_set_lock(&clock);
      counters.runs++;
-   omp_unset_lock(&clock);
-
      i = s.get_rt()->trace.num_ths;
 
-     omp_set_lock(&clock);
      if (counters.stid_threads < i)
      {
            counters.stid_threads = i;
      }
-     omp_unset_lock(&clock);
+   omp_unset_lock(&clock);
 
 
 //     s.print ();

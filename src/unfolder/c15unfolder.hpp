@@ -261,7 +261,7 @@ bool C15unfolder::stream_to_events
    DEBUG ("c15u: s2e: c %s t %zd", c.str().c_str(), t ? t->size() : -1);
 
    // reset the pidpool and the pidmap for this execution
-      pidpool.clear ();
+   pidpool.clear ();
 
    // skip the first context switch to pid 0, if present
    if (it != end and it.type () == RT_THCTXSW)
