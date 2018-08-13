@@ -751,9 +751,9 @@ void C15unfolder::compute_cex_lock (Event *e, Event **head)
       ASSERT (!em or em->action.type == ActionType::MTXUNLK);
 
       // 7. (action, ep, em) is a possibly new event
-      omp_set_lock(&pplock);
+      omp_set_lock(&ulock);
          ee = u.event (e->action, ep, em);
-      omp_unset_lock(&pplock);
+      omp_unset_lock(&ulock);
 
 //      PRINT ("c15u: cex-lock:  new cex: %s", ee->str().c_str());
 
