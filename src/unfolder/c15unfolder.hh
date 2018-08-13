@@ -76,7 +76,7 @@ protected:
    unsigned kpartial_bound;
 
 
-//   omp_lock_t ulock; // unfolding lock
+   omp_lock_t ulock; // unfolding lock
    omp_lock_t clock; // counters lock
    omp_lock_t rlock; // replays lock
    omp_lock_t slock; // start lock

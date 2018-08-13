@@ -288,7 +288,11 @@ bool C15unfolder::stream_to_events
       // need to insert bottom; our "last blue event" (e) is bottom
       // Khong can phai lock o day vi luc nay chi co 1 thread duy nhat
       ASSERT (c.empty());
+
+      omp_set_lock(&ulock);
       e = u.event (nullptr); // bottom
+      omp_unset_lock(&ulock);
+
       c.fire (e);
 //      ASSERT (!e->flags.ind);
       ASSERT (!d->inD(e));
@@ -307,14 +311,14 @@ bool C15unfolder::stream_to_events
       {
       case RT_MTXLOCK :
 //         PRINT ("LOCK");
-//         omp_set_lock(&e->process()->plock);
-         e->flags.crb = 1;
 
-           // mtx_id is the identifier for mutex
+         omp_set_lock(&ulock);
+         e->flags.crb = 1;
+         // mtx_id is the identifier for mutex
          mtx_id = it.addr() - (uint64_t) exe->get_runtime()->mem.begin;
          ee = c.mutex_max (mtx_id);
-
          e = u.event ({.type = ActionType::MTXLOCK, .addr = it.addr(), .offset = mtx_id}, e, ee);
+         omp_unset_lock(&ulock); // must always be released before pplock
 
          if (d and ! d->trail_push (e, t->size()))
             {
@@ -325,18 +329,18 @@ bool C15unfolder::stream_to_events
 
          if (t) t->push(e);
          c.fire (e);
-
-//         omp_unset_lock(&e->process()->plock);
          break;
 
       case RT_MTXUNLK :
 //         PRINT ("UNLOCK");
 //         omp_set_lock(&e->process()->plock);
-         e->flags.crb = 1;
-         mtx_id = it.addr() - (uint64_t) exe->get_runtime()->mem.begin;
-         ee = c.mutex_max (mtx_id);
 
-         e = u.event ({.type = ActionType::MTXUNLK, .addr = it.addr(), .offset = mtx_id}, e, ee);
+         omp_set_lock(&ulock);
+            e->flags.crb = 1;
+            mtx_id = it.addr() - (uint64_t) exe->get_runtime()->mem.begin;
+            ee = c.mutex_max (mtx_id);
+            e = u.event ({.type = ActionType::MTXUNLK, .addr = it.addr(), .offset = mtx_id}, e, ee);
+         omp_unset_lock(&ulock);
 
          if (d and ! d->trail_push (e, t->size()))
             {
@@ -345,19 +349,16 @@ bool C15unfolder::stream_to_events
             }
          if (t) t->push (e);
          c.fire (e);
-
-//         omp_unset_lock(&e->process()->plock);
          break;
 
       case RT_THCTXSW :
 //         PRINT ("CTXSW");
-         // No touch to process, so no need to lock anything
 
-//         omp_set_lock(&e->process()->plock);
+         omp_set_lock(&ulock);
          e->flags.crb = 1;
-//         omp_unset_lock(&e->process()->plock);
-            // on first context switch to a thread we push the THSTART event
+         // on first context switch to a thread we push the THSTART event
          e = start[pidmap.get(it.id())];
+         omp_unset_lock(&ulock);
 
          if (e)
          {
@@ -381,11 +382,12 @@ bool C15unfolder::stream_to_events
             ASSERT (e);
          }
 
-//         omp_unset_lock(&e->process()->plock);
          break;
 
       case RT_THCREAT :
 //         PRINT ("CREAT");
+
+         omp_set_lock(&ulock);
          e->flags.crb = 1;
 
          ASSERT (it.id() >= 1);
@@ -413,6 +415,7 @@ bool C15unfolder::stream_to_events
 
          // Truong hop dac biet khi process duoc tao moi-> se lock khi dung proc.add_event_0p
          ee = u.event (e);//
+         omp_unset_lock(&ulock);
 
          omp_set_lock(&slock);
          start[e->action.val] = ee;
@@ -430,8 +433,10 @@ bool C15unfolder::stream_to_events
 
       case RT_THEXIT :
 //         PRINT ("EXIT");
+         omp_set_lock(&ulock);
             e->flags.crb = 1;
             e = u.event ({.type = ActionType::THEXIT}, e);
+         omp_unset_lock(&ulock);
 
          c.fire (e);
          if (d and ! d->trail_push (e, t->size()))
@@ -445,13 +450,14 @@ bool C15unfolder::stream_to_events
 
       case RT_THJOIN :
 //         PRINT ("JOIN");
-         e->flags.crb = 1;
-
-         ee = c[pidmap.get(it.id())];
-         e = u.event ({.type = ActionType::THJOIN, .val = pidmap.get(it.id())}, e, ee);
+         omp_set_lock(&ulock);
+            e->flags.crb = 1;
+            ee = c[pidmap.get(it.id())];
+            e = u.event ({.type = ActionType::THJOIN, .val = pidmap.get(it.id())}, e, ee);
+         omp_unset_lock(&ulock);
 
          // notify the pidpool that we saw a THJOIN
-            pidpool.join (e);
+         pidpool.join (e);
 
          if (d and ! d->trail_push (e, t->size()))
          {
@@ -465,6 +471,7 @@ bool C15unfolder::stream_to_events
 
       case RT_ABORT :
 //         PRINT ("ABORT");
+         // Please check the lock for report and defect!!!!!!!!!!!!!!1
          if (report.nr_abort >= CONFIG_MAX_DEFECT_REPETITION) break;
          report.nr_abort++;
          defect.description = "The program called abort()";

@@ -51,7 +51,7 @@ C15unfolder::C15unfolder (Altalgo a, unsigned kbound, unsigned maxcts) :
 
    // Initialize the lock for the unfolding
 //   proc_locks.reserve(MAX_PROC);
-//   omp_init_lock(&ulock);
+   omp_init_lock(&ulock);
    omp_init_lock(&clock);
    omp_init_lock(&rlock);
    omp_init_lock(&slock);
@@ -64,7 +64,7 @@ C15unfolder::~C15unfolder ()
    DEBUG ("c15u.dtor: this %p", this);
 
    // Destroy the lock of the unfolding
-//   omp_destroy_lock(&ulock);
+   omp_destroy_lock(&ulock);
    omp_destroy_lock(&clock);
    omp_destroy_lock(&rlock);
    omp_destroy_lock(&slock);
