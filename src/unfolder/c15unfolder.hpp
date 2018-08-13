@@ -109,10 +109,10 @@ bool C15unfolder::stream_match_trail
 //         omp_unset_lock(&pplock);
 
          // we record the corresponding THSTART in start[]
-         omp_set_lock(&slock);
+//         omp_set_lock(&slock);
             start[t[i]->action.val] = u.event (t[i]);
             SHOW (u.event(t[i])->str().c_str(), "s");
-         omp_unset_lock(&slock);
+//         omp_unset_lock(&slock);
 
          count = 0;
          break;
@@ -161,9 +161,9 @@ bool C15unfolder::stream_match_trail
             i++;
             ASSERT (start[pid]);
 
-            omp_set_lock(&slock);
+//            omp_set_lock(&slock);
                start[pid] = nullptr;
-            omp_unset_lock(&slock);
+//            omp_unset_lock(&slock);
          }
          else
          {
@@ -236,8 +236,6 @@ bool C15unfolder::stream_to_events
    Defect defect;
    uint64_t mtx_id;
    unsigned long events_old = 0, events_new = 0;
-//   events_old = 0;
-//   events_new = 0;
 
    omp_set_lock(&pplock); // lock pidpool for the whole process of converting stream to events
 
@@ -290,7 +288,7 @@ bool C15unfolder::stream_to_events
       ASSERT (c.empty());
 
       omp_set_lock(&ulock);
-      e = u.event (nullptr); // bottom
+         e = u.event (nullptr); // bottom
       omp_unset_lock(&ulock);
 
       c.fire (e);
@@ -333,8 +331,6 @@ bool C15unfolder::stream_to_events
 
       case RT_MTXUNLK :
 //         PRINT ("UNLOCK");
-//         omp_set_lock(&e->process()->plock);
-
          omp_set_lock(&ulock);
             e->flags.crb = 1;
             mtx_id = it.addr() - (uint64_t) exe->get_runtime()->mem.begin;
@@ -362,9 +358,9 @@ bool C15unfolder::stream_to_events
 
          if (e)
          {
-            omp_set_lock(&slock);
+//            omp_set_lock(&slock);
                start[pidmap.get(it.id())] = nullptr;
-            omp_unset_lock(&slock);
+//            omp_unset_lock(&slock);
 
             if (d and ! d->trail_push (e, t->size()))
             {
@@ -395,7 +391,7 @@ bool C15unfolder::stream_to_events
          e = u.event ({.type = ActionType::THCREAT, .val = 0}, e);
 
          // we now let the pidpool choose the pid of the new process
-            newpid = pidpool.create (e);
+         newpid = pidpool.create (e);
          // init pid if the event has just been inserted in the unfolding
          if (e->action.val == 0)
          {
@@ -408,7 +404,7 @@ bool C15unfolder::stream_to_events
          }
 
          // we update the pidmap for this execution
-            pidmap.add (it.id(), e->action.val);
+         pidmap.add (it.id(), e->action.val);
 
          // we create now the new process but delay inserting the THSTART event
          // into the config and the trail until the first context switch
@@ -417,9 +413,9 @@ bool C15unfolder::stream_to_events
          ee = u.event (e);//
          omp_unset_lock(&ulock);
 
-         omp_set_lock(&slock);
+//         omp_set_lock(&slock);
          start[e->action.val] = ee;
-         omp_unset_lock(&slock);
+//         omp_unset_lock(&slock);
 
          ASSERT (ee->pid() == e->action.val);
          if (d and ! d->trail_push (e, t->size()))
@@ -471,28 +467,34 @@ bool C15unfolder::stream_to_events
 
       case RT_ABORT :
 //         PRINT ("ABORT");
-         // Please check the lock for report and defect!!!!!!!!!!!!!!1
+
          if (report.nr_abort >= CONFIG_MAX_DEFECT_REPETITION) break;
-         report.nr_abort++;
-         defect.description = "The program called abort()";
-         if (t)
-            defect.replay = std::move (Replay (u, *t));
-         else
-            defect.replay.clear();
-         report.add_defect (defect);
+
+         omp_set_lock(&rtlock);
+            report.nr_abort++;
+            defect.description = "The program called abort()";
+            if (t)
+               defect.replay = std::move (Replay (u, *t));
+            else
+               defect.replay.clear();
+            report.add_defect (defect);
+         omp_unset_lock(&rtlock);
          break;
 
       case RT_EXITNZ :
 //         PRINT ("EXITNZ");
          if (report.nr_exitnz >= CONFIG_MAX_DEFECT_REPETITION) break;
-         report.nr_exitnz++;
-         defect.description =
+
+         omp_set_lock(&rtlock);
+            report.nr_exitnz++;
+            defect.description =
                fmt ("The program exited with errorcode %d", it.id());
-         if (t)
-            defect.replay = std::move (Replay (u, *t));
-         else
-            defect.replay.clear();
-         report.add_defect (defect);
+            if (t)
+               defect.replay = std::move (Replay (u, *t));
+            else
+               defect.replay.clear();
+            report.add_defect (defect);
+         omp_unset_lock(&rtlock);
          break;
 
       case RT_RD8 :
@@ -592,7 +594,6 @@ bool C15unfolder::stream_to_events
          counters.dupli++;
       omp_unset_lock(&clock);
    }
-
 
 //   PRINT ("trail size: %lu",t->size());
 //   if (verb_debug) pidmap.dump (true); // KO can dump pidmap

@@ -56,7 +56,7 @@ C15unfolder::C15unfolder (Altalgo a, unsigned kbound, unsigned maxcts) :
    omp_init_lock(&rlock);
    omp_init_lock(&slock);
    omp_init_lock(&pplock);
-
+   omp_init_lock(&rtlock);
 }
 
 C15unfolder::~C15unfolder ()
@@ -69,6 +69,7 @@ C15unfolder::~C15unfolder ()
    omp_destroy_lock(&rlock);
    omp_destroy_lock(&slock);
    omp_destroy_lock(&pplock);
+   omp_destroy_lock(&rtlock);
 }
 
 stid::ExecutorConfig C15unfolder::prepare_executor_config () const
