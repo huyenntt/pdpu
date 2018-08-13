@@ -168,16 +168,15 @@ std::unique_ptr<Tunfolder> C15unfolder:: _get_por_analysis () // Lay cac tham so
 //=================================
 bool C15unfolder:: rpl_existed (Replay rpl, std::vector<Replay> &rpl_list)
 {
-//   omp_set_lock(&rlock);
+   omp_set_lock(&rlock);
    for (auto &r : rpl_list)
 //      if ( (rpl == r) or rpl.is_derived(r))
       if (rpl == r)
       {
-//      omp_unset_lock(&rlock);
+//       PRINT ("Replay already exists");
          return true;
       }
-
-//   omp_unset_lock(&rlock);
+   omp_unset_lock(&rlock);
    return false;
 }
 
