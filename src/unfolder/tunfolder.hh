@@ -120,7 +120,7 @@ private:
    /// Maximum number of context switches present in the trail for the
    /// exploration to allow computing alternatives for an event extracted from
    /// the trail immediately before.
-//   unsigned max_context_switches; // De xem cho nay the nao -> FIXME
+   unsigned max_context_switches; // De xem cho nay the nao -> FIXME
 };
 
 } //end of namespace

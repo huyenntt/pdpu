@@ -82,6 +82,7 @@ protected:
    omp_lock_t slock; // start lock
    omp_lock_t pplock; // pidpool lock
    omp_lock_t rtlock; // report lock
+   omp_nest_lock_t biglock; // biglock
 
 
 //   std::vector<Task> tasks;

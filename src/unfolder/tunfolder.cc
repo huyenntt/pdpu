@@ -36,15 +36,15 @@
 
 namespace dpu
 {
-
-Tunfolder::Tunfolder (const stid::ExecutorConfig &config, Altalgo a, unsigned kbound, unsigned maxcts) : // Nho set up them cac thong so khac giong c15
+// Nho set up them cac thong so khac giong c15
+Tunfolder::Tunfolder (const stid::ExecutorConfig &config, Altalgo a, unsigned kbound, unsigned maxcts) :
    _exec (nullptr),
    _m (nullptr),
    _config (config),
    alt_algo (a),
    kpartial_bound (kbound),
-   comb (a, kbound)
-//   max_context_switches (maxcts)
+   comb (a, kbound),
+   max_context_switches (maxcts)
 {
    DEBUG ("Tunf: ctor");
    DEBUG ("Tunf: config: %zu", _config.memsize);
@@ -408,6 +408,8 @@ bool Tunfolder::find_alternative (const Trail &t, Config &c, const Disset &d, Cu
 {
    bool b;
 
+   PRINT ("find_alt: alt_algo: %u", alt_algo);
+
    switch (alt_algo) {
    case Altalgo::OPTIMAL :
    case Altalgo::KPARTIAL :
@@ -489,8 +491,6 @@ bool Tunfolder::find_alternative_only_last (const Config &c, const Disset &d, Cu
 #ifdef CONFIG_STATS_DETAILED
       count++;
 #endif
-
-      // Van de o day nua ne
 
 //      if (!ee->flags.ind and !ee->in_cfl_with (c) and !d.intersects_with (ee))
       if ( !d.inD (ee) and !ee->in_cfl_with (c) and !d.intersects_with (ee))
@@ -598,7 +598,7 @@ bool Tunfolder::find_alternative_kpartial (const Config &c, const Disset &d, Cut
    return false;
 }
 
-bool Tunfolder::find_alternative_sdpor (Config &c, const Disset &d, Cut &j, Unfolding &u) // them u
+bool Tunfolder::find_alternative_sdpor (Config &c, const Disset &d, Cut &j, Unfolding &u) // add u
 {
    Event * e;
    bool b;
