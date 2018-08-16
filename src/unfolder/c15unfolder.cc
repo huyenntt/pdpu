@@ -215,10 +215,11 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //     if (record_replays) replays.push_back (replay);
 //   if (record_replays) replays.push_back (tsk->rep); // always push a new replay to list of replays
 
-   omp_set_nest_lock(&biglock);
+//   omp_set_nest_lock(&biglock);
 
-   PRINT ("update counters");
-//   omp_set_lock(&clock);
+   PRINT ("update counters===============================================Thread %d ",omp_get_thread_num());
+
+   omp_set_lock(&clock);
      counters.runs++;
      i = s.get_rt()->trace.num_ths;
 
@@ -226,14 +227,12 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
      {
            counters.stid_threads = i;
      }
-//   omp_unset_lock(&clock);
+   omp_unset_lock(&clock);
 
 //     s.print ();
 //      tsk->trail.dump();
 
-
-
-     PRINT ("c15u: explore: Stream to events:");
+     PRINT ("c15u: explore: Stream to events:============================Thread %d ",omp_get_thread_num());
      /*
       * We need to store old trail here, or just top_idx of trail to avoid backtracking the events which are
       * considered for alternatives before.
@@ -257,18 +256,18 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
        #endif
 
        // add conflicting extensions
-       PRINT ("c15u: explore: compute cex");
+       PRINT ("c15u: explore: compute cex ==============================Thread %d ",omp_get_thread_num());
 //       omp_set_lock(&ulock);
           compute_cex (tsk->conf, &e);  // Truy cap den unfolding cuar C15unfolder, lock se dung ben trong ham
 //       omp_unset_lock(&ulock);
 
-//       omp_set_lock(&clock);
+       omp_set_lock(&clock);
           counters.avg_max_trail_size += tsk->trail.size();
-//       omp_unset_lock(&clock);
+       omp_unset_lock(&clock);
 
 //       omp_unset_lock(&biglock);
        // backtrack until the root to find all right subtrees to explore
-       PRINT("c15u: explore: backtrack the trail");
+       PRINT("c15u: explore: backtrack the trail =======================Thread %d ",omp_get_thread_num());
 
 //       while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
        while (tsk->trail.size() > 0) // Van phai xem lai tat ca cac event
@@ -290,9 +289,9 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
           if (tsk->trail.nr_context_switches() >= max_context_switches) continue;
 
 
-//          omp_set_lock(&clock);
+          omp_set_lock(&clock);
              counters.alt.calls++;
-//          omp_unset_lock(&clock);
+          omp_unset_lock(&clock);
 
           // check for alternatives
           if (! unfolder->might_find_alternative (tsk->conf, tsk->dis, e))
@@ -347,10 +346,10 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
            } // end of if
 
 //          else
-          {
-//             omp_unset_lock(&biglock);
-             PRINT ("c15u: epxplore: no alt found");
-          }
+//          {
+////             omp_unset_lock(&biglock);
+//             PRINT ("c15u: epxplore: no alt found");
+//          }
 //          omp_unset_lock(&ulock);
 
           tsk->dis.unadd ();
@@ -359,11 +358,11 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 
        PRINT ("c15u: explore: stop backtracking");
 
-//       omp_set_lock(&clock);
+       omp_set_lock(&clock);
           counters.ssbs += tsk->dis.ssb_count;
-//       omp_unset_lock(&clock);
+       omp_unset_lock(&clock);
 
-       omp_unset_nest_lock(&biglock);
+//       omp_unset_nest_lock(&biglock);
 
        PRINT ("c15: explore: finish one config  ============================= Thread %d",omp_get_thread_num());
 }
@@ -397,13 +396,13 @@ void C15unfolder::explore_para ()
       {
 //         PRINT ("c15: explore: task outside the omp task");
 //         tsk->dump();
-//         #pragma omp task firstprivate(tsk)
-//         {
+         #pragma omp task firstprivate(tsk)
+         {
             explore_one_maxconfig(tsk);
-//         }
+         }
       } // end of single
 
-//      #pragma omp taskwait
+      #pragma omp taskwait
    } // end of parallel
 
 
@@ -773,9 +772,9 @@ void C15unfolder::compute_cex_lock (Event *e, Event **head)
       ASSERT (!em or em->action.type == ActionType::MTXUNLK);
 
       // 7. (action, ep, em) is a possibly new event
-//      omp_set_lock(&ulock);
+      omp_set_lock(&ulock);
          ee = u.event (e->action, ep, em);
-//      omp_unset_lock(&ulock);
+      omp_unset_lock(&ulock);
 
 //      PRINT ("c15u: cex-lock:  new cex: %s", ee->str().c_str());
 

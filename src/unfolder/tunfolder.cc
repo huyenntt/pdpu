@@ -408,7 +408,7 @@ bool Tunfolder::find_alternative (const Trail &t, Config &c, const Disset &d, Cu
 {
    bool b;
 
-   PRINT ("find_alt: alt_algo: %u", alt_algo);
+//   PRINT ("find_alt: alt_algo: %u", alt_algo);
 
    switch (alt_algo) {
    case Altalgo::OPTIMAL :
