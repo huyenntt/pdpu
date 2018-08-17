@@ -257,10 +257,10 @@ bool C15unfolder::stream_to_events
          fmt ("Execution created %u threads, but unfolder supports up to %u",
                s.get_rt()->trace.num_ths, Unfolding::MAX_PROC));
 
-   DEBUG ("c15u: s2e: c %s t %zd", c.str().c_str(), t ? t->size() : -1);
+//   DEBUG ("c15u: s2e: c %s t %zd", c.str().c_str(), t ? t->size() : -1);
 
    omp_set_lock(&pplock); // lock pidpool for the whole process of converting stream to events
-   PRINT ("pplock taken by ==============================================Thread %d ",omp_get_thread_num());
+   PRINT ("pplock taken by ==============================================Thread %d ", omp_get_thread_num());
 
    // reset the pidpool and the pidmap for this execution
    pidpool.clear ();
@@ -280,7 +280,14 @@ bool C15unfolder::stream_to_events
       // config must not be empty
       ASSERT (! c.empty());
       e = t->back();
-      if (not stream_match_trail (s, it, *t, pidmap)) return false;
+      if (not stream_match_trail (s, it, *t, pidmap))
+      {
+         omp_unset_lock(&pplock);
+         PRINT ("pplock released by ============================================Thread %d ", omp_get_thread_num());
+         omp_unset_lock(&ulock); // lock unfolding to count events of each process
+         PRINT ("ulock released by =============================================Thread %d ",omp_get_thread_num());
+         return false;
+      }
    }
    else
    {
@@ -315,14 +322,14 @@ bool C15unfolder::stream_to_events
          e = u.event ({.type = ActionType::MTXLOCK, .addr = it.addr(), .offset = mtx_id}, e, ee);
 
          if (d and ! d->trail_push (e, t->size()))
-            {
-               PRINT ("c15:ste: add d has problems");
-               omp_unset_lock(&pplock); // release pplock
-               PRINT ("pplock released by ====================================Thread %d ",omp_get_thread_num());
-               omp_unset_lock(&ulock); // release ulock
-               PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
-               return false;
-            }
+         {
+            PRINT ("c15:ste: add d has problems");
+            omp_unset_lock(&pplock); // release pplock
+            PRINT ("pplock released by ====================================Thread %d ",omp_get_thread_num());
+            omp_unset_lock(&ulock); // release ulock
+            PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
+            return false;
+         }
 
          if (t) t->push(e);
          c.fire (e);
@@ -330,19 +337,20 @@ bool C15unfolder::stream_to_events
 
       case RT_MTXUNLK :
 //         PRINT ("UNLOCK");
-            e->flags.crb = 1;
-            mtx_id = it.addr() - (uint64_t) exe->get_runtime()->mem.begin;
-            ee = c.mutex_max (mtx_id);
-            e = u.event ({.type = ActionType::MTXUNLK, .addr = it.addr(), .offset = mtx_id}, e, ee);
+         e->flags.crb = 1;
+         mtx_id = it.addr() - (uint64_t) exe->get_runtime()->mem.begin;
+         ee = c.mutex_max (mtx_id);
+         e = u.event ({.type = ActionType::MTXUNLK, .addr = it.addr(), .offset = mtx_id}, e, ee);
 
          if (d and ! d->trail_push (e, t->size()))
-            {
-               omp_unset_lock(&pplock); // release pplock
-               PRINT ("pplock released by =======================================Thread %d ",omp_get_thread_num());
-               omp_unset_lock(&ulock); // release ulock
-                  PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
-               return false;
-            }
+         {
+            omp_unset_lock(&pplock); // release pplock
+            PRINT ("pplock released by =======================================Thread %d ",omp_get_thread_num());
+            omp_unset_lock(&ulock); // release ulock
+            PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
+            return false;
+         }
+
          if (t) t->push (e);
          c.fire (e);
          break;
@@ -414,13 +422,14 @@ bool C15unfolder::stream_to_events
 
          ASSERT (ee->pid() == e->action.val);
          if (d and ! d->trail_push (e, t->size()))
-            {
-               omp_unset_lock(&pplock); // release pplock
-               PRINT ("pplock released by ====================================Thread %d ",omp_get_thread_num());
-               omp_unset_lock(&ulock); // release ulock
-               PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
-               return false;
-            }
+         {
+            omp_unset_lock(&pplock); // release pplock
+            PRINT ("pplock released by ====================================Thread %d ",omp_get_thread_num());
+            omp_unset_lock(&ulock); // release ulock
+            PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
+            return false;
+         }
+
          if (t) t->push (e);
          c.fire (e);
          break;
@@ -431,23 +440,24 @@ bool C15unfolder::stream_to_events
          e = u.event ({.type = ActionType::THEXIT}, e);
 
          c.fire (e);
+
          if (d and ! d->trail_push (e, t->size()))
-            {
-               omp_unset_lock(&pplock); // release pplock
-               PRINT ("pplock released by ====================================Thread %d ",omp_get_thread_num());
-               omp_unset_lock(&ulock); // release ulock
-               PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
-               return false;
-            }
+         {
+            omp_unset_lock(&pplock); // release pplock
+            PRINT ("pplock released by ====================================Thread %d ",omp_get_thread_num());
+            omp_unset_lock(&ulock); // release ulock
+            PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
+            return false;
+         }
          if (t) t->push (e);
 
          break;
 
       case RT_THJOIN :
 //         PRINT ("JOIN");
-            e->flags.crb = 1;
-            ee = c[pidmap.get(it.id())];
-            e = u.event ({.type = ActionType::THJOIN, .val = pidmap.get(it.id())}, e, ee);
+         e->flags.crb = 1;
+         ee = c[pidmap.get(it.id())];
+         e = u.event ({.type = ActionType::THJOIN, .val = pidmap.get(it.id())}, e, ee);
 
          // notify the pidpool that we saw a THJOIN
          pidpool.join (e);

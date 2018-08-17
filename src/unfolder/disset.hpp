@@ -346,23 +346,23 @@ bool Disset::trail_push (Event *e, int idx)
       ssb_count++;
 //      PRINT ("d.ssb_count %d =================", ssb_count);
 
-#ifdef VERB_LEVEL_TRACE
-      unsigned u, j;
-      u = j = 0;
-      for (auto it = justified.begin(), end = justified.end();
-            it != end; ++it) j++;
-      for (auto it = unjustified.begin(), end = unjustified.end();
-            it != end; ++it) u++;
-
-//      TRACE ("c15u: disset: SSB, count %u, |trail| %u, "
-//            "|D| %u (%u just, %u unjust)",
-//            ssb_count, idx, u + j, j, u);
-      PRINT ("c15u: disset: SSB, count %u, |trail| %u, "
-                 "|D| %u (%u just, %u unjust)",
-                 ssb_count, idx, u + j, j, u);
-#endif
+//#ifdef VERB_LEVEL_TRACE
+//      unsigned u, j;
+//      u = j = 0;
+//      for (auto it = justified.begin(), end = justified.end();
+//            it != end; ++it) j++;
+//      for (auto it = unjustified.begin(), end = unjustified.end();
+//            it != end; ++it) u++;
+//
+////      TRACE ("c15u: disset: SSB, count %u, |trail| %u, "
+////            "|D| %u (%u just, %u unjust)",
+////            ssb_count, idx, u + j, j, u);
+//      PRINT ("c15u: disset: SSB, count %u, |trail| %u, "
+//                 "|D| %u (%u just, %u unjust)",
+//                 ssb_count, idx, u + j, j, u);
+//#endif
 //      PRINT ("dis: trail_push: add event already in D");
-            return false;
+       return false;
    }
 
    // iterate through the list of unjustified events and move to the list of
