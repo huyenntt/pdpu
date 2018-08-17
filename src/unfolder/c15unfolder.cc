@@ -212,7 +212,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 
    // Get a trace from stream
    stid::action_streamt s (unfolder->_exec->get_trace ());
-   s.print ();
+//   s.print ();
 
    // if requested, record the replay sequence
 //     if (record_replays) replays.push_back (replay);
@@ -233,8 +233,6 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //     }
    omp_unset_lock(&clock);
    PRINT ("clock run released by =====================================Thread %d ",omp_get_thread_num());
-
-//     s.print ();
 
      PRINT ("c15u: explore: Stream to events:============================Thread %d ",omp_get_thread_num());
 //
@@ -410,9 +408,9 @@ void C15unfolder::explore_para ()
    report_init (); // init report trong c15
    start_time = time (nullptr);
 
-//   omp_set_num_threads(1);
+   omp_set_num_threads(1);
 //   PRINT ("CORESSSS %u", opts::cores);
-   omp_set_num_threads(opts::cores);
+//   omp_set_num_threads(opts::cores);
 
    #pragma omp parallel firstprivate(tsk)
    {
