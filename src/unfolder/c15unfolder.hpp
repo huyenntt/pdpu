@@ -320,7 +320,7 @@ bool C15unfolder::stream_to_events
                omp_unset_lock(&pplock); // release pplock
                PRINT ("pplock released by ====================================Thread %d ",omp_get_thread_num());
                omp_unset_lock(&ulock); // release ulock
-                  PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
+               PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
                return false;
             }
 
@@ -418,7 +418,7 @@ bool C15unfolder::stream_to_events
                omp_unset_lock(&pplock); // release pplock
                PRINT ("pplock released by ====================================Thread %d ",omp_get_thread_num());
                omp_unset_lock(&ulock); // release ulock
-                  PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
+               PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
                return false;
             }
          if (t) t->push (e);
@@ -592,12 +592,12 @@ bool C15unfolder::stream_to_events
    PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
 
    // if this function creats new events, it is a new maximal configuration. Otherwise, it is not counted as MC.
+   omp_set_lock(&clock);
+   PRINT ("clock taken by =====================================Thread %d ",omp_get_thread_num());
    if (events_new == events_old)
-   {
-      omp_set_lock(&clock);
-         counters.dupli++;
-      omp_unset_lock(&clock);
-   }
+          counters.dupli++;
+   omp_unset_lock(&clock);
+   PRINT ("clock released by =====================================Thread %d ",omp_get_thread_num());
 
 //   PRINT ("trail size: %lu",t->size());
 //   if (verb_debug) pidmap.dump (true); // KO can dump pidmap

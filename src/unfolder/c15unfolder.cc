@@ -204,7 +204,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 
 //   unfolder->_set_replay_sleepset(replay, tsk->dis, tsk->add);
    unfolder->_set_replay_sleepset(tsk->rep, tsk->dis, tsk->add);
-   PRINT ("c15u: explore: call run from steroids");
+   PRINT ("c15u: explore: call run from steroidsv======================Thread %d ",omp_get_thread_num());
    unfolder->_exec->run();
 
 //   PRINT ("finished call exec run");
@@ -220,6 +220,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
    PRINT ("update counters===============================================Thread %d ",omp_get_thread_num());
 
    omp_set_lock(&clock);
+   PRINT ("clock taken by =====================================Thread %d ",omp_get_thread_num());
      counters.runs++;
      i = s.get_rt()->trace.num_ths;
 
@@ -228,6 +229,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
            counters.stid_threads = i;
      }
    omp_unset_lock(&clock);
+   PRINT ("clock released by =====================================Thread %d ",omp_get_thread_num());
 
 //     s.print ();
 //      tsk->trail.dump();
@@ -262,8 +264,10 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //       omp_unset_lock(&ulock);
 
        omp_set_lock(&clock);
+       PRINT ("clock taken by =====================================Thread %d ",omp_get_thread_num());
           counters.avg_max_trail_size += tsk->trail.size();
        omp_unset_lock(&clock);
+       PRINT ("clock released by =====================================Thread %d ",omp_get_thread_num());
 
 //       omp_unset_lock(&biglock);
        // backtrack until the root to find all right subtrees to explore
@@ -290,8 +294,10 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 
 
           omp_set_lock(&clock);
+          PRINT ("clock taken by =====================================Thread %d ",omp_get_thread_num());
              counters.alt.calls++;
           omp_unset_lock(&clock);
+          PRINT ("clock released by =====================================Thread %d ",omp_get_thread_num());
 
           // check for alternatives
           if (! unfolder->might_find_alternative (tsk->conf, tsk->dis, e))
@@ -315,6 +321,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
                 replay.build_from (tsk->trail, tsk->conf, tsk->add);
 
                 omp_set_lock(&rlock);
+                PRINT ("rlock taken by =====================================Thread %d ",omp_get_thread_num());
                    if (tsk->trail.size() <= last_trail_size)
                    {
                       if (rpl_existed (replay,replays))
@@ -328,6 +335,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 
                    replays.push_back(replay);
                 omp_unset_lock(&rlock);
+                PRINT ("rlock released by =====================================Thread %d ",omp_get_thread_num());
 
 
                 ntsk = new Task(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
@@ -359,8 +367,10 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
        PRINT ("c15u: explore: stop backtracking");
 
        omp_set_lock(&clock);
+       PRINT ("clock taken by =====================================Thread %d ",omp_get_thread_num());
           counters.ssbs += tsk->dis.ssb_count;
        omp_unset_lock(&clock);
+       PRINT ("clock released by =====================================Thread %d ",omp_get_thread_num());
 
 //       omp_unset_nest_lock(&biglock);
 
