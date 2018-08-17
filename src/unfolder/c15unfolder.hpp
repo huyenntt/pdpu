@@ -237,7 +237,7 @@ bool C15unfolder::stream_to_events
    //If all processes produce no new events, the configuration is not a new one -> it is a kind of duplication.
 
    omp_set_lock(&ulock); // lock unfolding to count events of each process
-   PRINT ("ulock taken by ====================================Thread %d ",omp_get_thread_num());
+   PRINT ("ulock taken by ==============================================Thread %d ",omp_get_thread_num());
 
    for (int i = 0; i < u.num_procs(); i++)
       events_old += u.proc(i)->counters.events;
@@ -260,7 +260,7 @@ bool C15unfolder::stream_to_events
    DEBUG ("c15u: s2e: c %s t %zd", c.str().c_str(), t ? t->size() : -1);
 
    omp_set_lock(&pplock); // lock pidpool for the whole process of converting stream to events
-   PRINT ("pplock taken by ====================================Thread %d ",omp_get_thread_num());
+   PRINT ("pplock taken by ==============================================Thread %d ",omp_get_thread_num());
 
    // reset the pidpool and the pidmap for this execution
    pidpool.clear ();
@@ -338,7 +338,7 @@ bool C15unfolder::stream_to_events
          if (d and ! d->trail_push (e, t->size()))
             {
                omp_unset_lock(&pplock); // release pplock
-               PRINT ("pplock released by ====================================Thread %d ",omp_get_thread_num());
+               PRINT ("pplock released by =======================================Thread %d ",omp_get_thread_num());
                omp_unset_lock(&ulock); // release ulock
                   PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
                return false;
@@ -364,7 +364,7 @@ bool C15unfolder::stream_to_events
                omp_unset_lock(&pplock); // release pplock
                PRINT ("pplock released by ====================================Thread %d ",omp_get_thread_num());
                omp_unset_lock(&ulock); // release ulock
-                  PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
+               PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
                return false;
             }
 
@@ -589,15 +589,15 @@ bool C15unfolder::stream_to_events
          events_new += u.proc(i)->counters.events;
 
    omp_unset_lock(&ulock); // release ulock
-   PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
+   PRINT ("ulock released by ======================================Thread %d ",omp_get_thread_num());
 
    // if this function creats new events, it is a new maximal configuration. Otherwise, it is not counted as MC.
    omp_set_lock(&clock);
-   PRINT ("clock taken by =====================================Thread %d ",omp_get_thread_num());
+   PRINT ("clock for counter dupli taken by ========================================Thread %d ",omp_get_thread_num());
    if (events_new == events_old)
           counters.dupli++;
    omp_unset_lock(&clock);
-   PRINT ("clock released by =====================================Thread %d ",omp_get_thread_num());
+   PRINT ("clock for counter dupli released by =====================================Thread %d ",omp_get_thread_num());
 
 //   PRINT ("trail size: %lu",t->size());
 //   if (verb_debug) pidmap.dump (true); // KO can dump pidmap
