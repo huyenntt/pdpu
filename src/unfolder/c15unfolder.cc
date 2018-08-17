@@ -185,7 +185,7 @@ bool C15unfolder:: rpl_existed (Replay rpl, std::vector<Replay> &rpl_list)
 //===================================
 void C15unfolder::explore_one_maxconfig (Task *tsk)
 {
-   int i = 0;
+//   int i = 0;
    Event *e = nullptr;
    bool b;
    std::unique_ptr<Tunfolder> unfolder;
@@ -222,12 +222,12 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
    omp_set_lock(&clock);
    PRINT ("clock run taken by ========================================Thread %d ",omp_get_thread_num());
      counters.runs++;
-     i = s.get_rt()->trace.num_ths;
+//     i = s.get_rt()->trace.num_ths;
 
-     if (counters.stid_threads < i)
-     {
-           counters.stid_threads = i;
-     }
+//     if (counters.stid_threads < i)
+//     {
+//           counters.stid_threads = i;
+//     }
    omp_unset_lock(&clock);
    PRINT ("clock run released by =====================================Thread %d ",omp_get_thread_num());
 
@@ -263,11 +263,11 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
           compute_cex (tsk->conf, &e);  // Truy cap den unfolding cuar C15unfolder, lock se dung ben trong ham
 //       omp_unset_lock(&ulock);
 
-       omp_set_lock(&clock);
-       PRINT ("clock for maxtrail taken by=== =====================================Thread %d ",omp_get_thread_num());
-          counters.avg_max_trail_size += tsk->trail.size();
-       omp_unset_lock(&clock);
-       PRINT ("clock for maxtrail released by =====================================Thread %d ",omp_get_thread_num());
+//       omp_set_lock(&clock);
+//       PRINT ("clock for maxtrail taken by=== =====================================Thread %d ",omp_get_thread_num());
+//          counters.avg_max_trail_size += tsk->trail.size();
+//       omp_unset_lock(&clock);
+//       PRINT ("clock for maxtrail released by =====================================Thread %d ",omp_get_thread_num());
 
 //       omp_unset_lock(&biglock);
        // backtrack until the root to find all right subtrees to explore
@@ -299,12 +299,11 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
              continue;
           }
 
-
-          omp_set_lock(&clock);
-          PRINT ("clock for alt call taken by ========================================Thread %d ",omp_get_thread_num());
-             counters.alt.calls++;
-          omp_unset_lock(&clock);
-          PRINT ("clock for alt call released by =====================================Thread %d ",omp_get_thread_num());
+//          omp_set_lock(&clock);
+//          PRINT ("clock for alt call taken by ========================================Thread %d ",omp_get_thread_num());
+//             counters.alt.calls++;
+//          omp_unset_lock(&clock);
+//          PRINT ("clock for alt call released by =====================================Thread %d ",omp_get_thread_num());
 
           // check for alternatives
           if (! unfolder->might_find_alternative (tsk->conf, tsk->dis, e))
@@ -374,6 +373,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
        } // end of while trail
 
        PRINT ("c15u: explore: stop backtracking");
+       PRINT ("tsk->dis.ssb_count: %d",tsk->dis.ssb_count);
 
        omp_set_lock(&clock);
        PRINT ("clock for ssb taken by ========================================Thread %d ",omp_get_thread_num());
@@ -415,20 +415,20 @@ void C15unfolder::explore_para ()
       {
 //         PRINT ("c15: explore: task outside the omp task");
 //         tsk->dump();
-         #pragma omp task firstprivate(tsk)
-         {
+//         #pragma omp task firstprivate(tsk)
+//         {
             explore_one_maxconfig(tsk);
-         }
+//         }
       } // end of single
 
-      #pragma omp taskwait
+//      #pragma omp taskwait
    } // end of parallel
 
 
    // statistics (all for c15unfolder)
    PRINT ("Number of duplicate: %lu", counters.dupli);
    counters.maxconfs = counters.runs - counters.ssbs - counters.dupli;
-   counters.avg_max_trail_size /= counters.runs;
+//   counters.avg_max_trail_size /= counters.runs;
    PRINT ("c15u: explore: done!");
    PRINT ("NUMBER OF SSBs: %lu", counters.ssbs);
    ASSERT (counters.ssbs == 0 or altalgo != Altalgo::OPTIMAL);
@@ -529,6 +529,7 @@ void C15unfolder:: explore_seq()
         // add conflicting extensions
         PRINT ("c15: explore: compute cex");
         compute_cex (tsk->conf, &e);  // Truy cap den unfolding cuar C15unfolder, lock se dung ben trong ham
+
 
         counters.avg_max_trail_size += tsk->trail.size(); //???
 
