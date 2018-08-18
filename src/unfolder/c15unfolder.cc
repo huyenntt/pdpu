@@ -218,7 +218,9 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //     if (record_replays) replays.push_back (replay);
 //   if (record_replays) replays.push_back (tsk->rep); // always push a new replay to list of replays
 
-   omp_set_nest_lock(&biglock);
+//   omp_set_nest_lock(&biglock);
+   omp_set_lock(&ulock);
+   PRINT ("ulock run taken by ========================================Thread %d ",omp_get_thread_num());
 
    PRINT ("update counters===============================================Thread %d ",omp_get_thread_num());
 
@@ -271,7 +273,8 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //       PRINT ("clock for maxtrail released by =====================================Thread %d ",omp_get_thread_num());
 
 //       omp_unset_lock(&biglock);
-
+         omp_unset_lock(&ulock);
+         PRINT ("ulock released by ========================================Thread %d ",omp_get_thread_num());
 
        // backtrack until the root to find all right subtrees to explore
        PRINT("c15u: explore: backtrack the trail =======================Thread %d ",omp_get_thread_num());
@@ -380,13 +383,17 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
        PRINT ("c15u: explore: stop backtracking");
        PRINT ("tsk->dis.ssb_count: %d",tsk->dis.ssb_count);
 
+       omp_set_lock(&ulock);
+       PRINT ("ulock taken by ========================================Thread %d ",omp_get_thread_num());
 //       omp_set_lock(&clock);
 //       PRINT ("clock for ssb taken by ========================================Thread %d ",omp_get_thread_num());
           counters.ssbs += tsk->dis.ssb_count;
 //       omp_unset_lock(&clock);
 //       PRINT ("clock for ssb released by =====================================Thread %d ",omp_get_thread_num());
+       omp_unset_lock(&ulock);
+       PRINT ("ulock released by ========================================Thread %d ",omp_get_thread_num());
 
-       omp_unset_nest_lock(&biglock);
+//       omp_unset_nest_lock(&biglock);
        PRINT ("c15: explore: finish one config  ==========================================Thread %d",omp_get_thread_num());
 
 }
@@ -410,7 +417,7 @@ void C15unfolder::explore_para ()
    report_init (); // init report trong c15
    start_time = time (nullptr);
 
-//   omp_set_num_threads(1);
+ //  omp_set_num_threads(1);
 //   PRINT ("CORESSSS %u", opts::cores);
    omp_set_num_threads(opts::cores);
 
@@ -795,11 +802,11 @@ void C15unfolder::compute_cex_lock (Event *e, Event **head)
       ASSERT (!em or em->action.type == ActionType::MTXUNLK);
 
       // 7. (action, ep, em) is a possibly new event
-      omp_set_lock(&ulock);
-         PRINT ("ulock taken by ========================================Thread %d ",omp_get_thread_num());
+//      omp_set_lock(&ulock);
+//         PRINT ("ulock taken by ========================================Thread %d ",omp_get_thread_num());
          ee = u.event (e->action, ep, em);
-      omp_unset_lock(&ulock);
-      PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
+//      omp_unset_lock(&ulock);
+//      PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
 
 //      PRINT ("c15u: cex-lock:  new cex: %s", ee->str().c_str());
 
