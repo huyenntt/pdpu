@@ -204,7 +204,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //   PRINT ("replay: %s", tsk->rep.str().c_str());
 
 //   unfolder->_set_replay_sleepset(replay, tsk->dis, tsk->add);
-   unfolder->_set_replay_sleepset(tsk->rep, tsk->dis, tsk->add);
+   unfolder->_set_replay_sleepset(tsk->rep, tsk->dis, tsk->add); // read infos from tsk and unf => don't need lock
    PRINT ("c15u: explore: call run from steroid===========================Thread %d ",omp_get_thread_num());
    unfolder->_exec->run();
 
@@ -219,13 +219,11 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //   if (record_replays) replays.push_back (tsk->rep); // always push a new replay to list of replays
 
 //   omp_set_nest_lock(&biglock);
-   omp_set_lock(&ulock);
-   PRINT ("ulock run taken by ========================================Thread %d ",omp_get_thread_num());
 
    PRINT ("update counters===============================================Thread %d ",omp_get_thread_num());
 
-//   omp_set_lock(&clock);
-//   PRINT ("clock run taken by ========================================Thread %d ",omp_get_thread_num());
+   omp_set_lock(&clock);
+   PRINT ("clock for run taken by ========================================Thread %d ",omp_get_thread_num());
      counters.runs++;
 //     i = s.get_rt()->trace.num_ths;
 
@@ -233,8 +231,8 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //     {
 //           counters.stid_threads = i;
 //     }
-//   omp_unset_lock(&clock);
-//   PRINT ("clock run released by =====================================Thread %d ",omp_get_thread_num());
+   omp_unset_lock(&clock);
+   PRINT ("clock for run released by =====================================Thread %d ",omp_get_thread_num());
 
      PRINT ("c15u: explore: Stream to events:============================Thread %d ",omp_get_thread_num());
 //
@@ -242,6 +240,9 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //       considered for alternatives before.
 //     Event * last_old_trail = tsk->trail.empty() ? nullptr : tsk->trail.peek();
      int last_trail_size = tsk->trail.size();
+
+       omp_set_lock(&ulock);
+       PRINT ("ulock taken by ========================================Thread %d ",omp_get_thread_num());
 
 //     omp_set_lock(&ulock);
         b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec);
@@ -272,9 +273,10 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //       omp_unset_lock(&clock);
 //       PRINT ("clock for maxtrail released by =====================================Thread %d ",omp_get_thread_num());
 
-//       omp_unset_lock(&biglock);
+
          omp_unset_lock(&ulock);
          PRINT ("ulock released by ========================================Thread %d ",omp_get_thread_num());
+
 
        // backtrack until the root to find all right subtrees to explore
        PRINT("c15u: explore: backtrack the trail =======================Thread %d ",omp_get_thread_num());
@@ -282,6 +284,9 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //       while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
 //       omp_set_lock(&ulock);
 //       PRINT ("ulock backtracking taken by =====================================Thread %d ",omp_get_thread_num());
+
+       omp_set_nest_lock(&biglock);
+       PRINT ("biglock taken by ========================================Thread %d ",omp_get_thread_num());
 
        while (tsk->trail.size() > 0) // Van phai xem lai tat ca cac event
        {
@@ -379,21 +384,18 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
           tsk->dis.unadd ();
 
        } // end of while trail
+       omp_unset_nest_lock(&biglock);
+       PRINT ("biglock released by ========================================Thread %d ",omp_get_thread_num());
 
        PRINT ("c15u: explore: stop backtracking");
        PRINT ("tsk->dis.ssb_count: %d",tsk->dis.ssb_count);
 
-       omp_set_lock(&ulock);
-       PRINT ("ulock taken by ========================================Thread %d ",omp_get_thread_num());
-//       omp_set_lock(&clock);
-//       PRINT ("clock for ssb taken by ========================================Thread %d ",omp_get_thread_num());
+       omp_set_lock(&clock);
+       PRINT ("clock for ssb taken by ========================================Thread %d ",omp_get_thread_num());
           counters.ssbs += tsk->dis.ssb_count;
-//       omp_unset_lock(&clock);
-//       PRINT ("clock for ssb released by =====================================Thread %d ",omp_get_thread_num());
-       omp_unset_lock(&ulock);
-       PRINT ("ulock released by ========================================Thread %d ",omp_get_thread_num());
+       omp_unset_lock(&clock);
+       PRINT ("clock for ssb released by =====================================Thread %d ",omp_get_thread_num());
 
-//       omp_unset_nest_lock(&biglock);
        PRINT ("c15: explore: finish one config  ==========================================Thread %d",omp_get_thread_num());
 
 }

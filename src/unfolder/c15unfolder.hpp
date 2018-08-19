@@ -602,12 +602,12 @@ bool C15unfolder::stream_to_events
 //   PRINT ("ulock released by ======================================Thread %d ",omp_get_thread_num());
 
    // if this function creats new events, it is a new maximal configuration. Otherwise, it is not counted as MC.
-//   omp_set_lock(&clock);
-//   PRINT ("clock for counter dupli taken by ========================================Thread %d ",omp_get_thread_num());
+   omp_set_lock(&clock);
+   PRINT ("clock for counter dupli taken by ========================================Thread %d ",omp_get_thread_num());
    if (events_new == events_old)
           counters.dupli++;
-//   omp_unset_lock(&clock);
-//   PRINT ("clock for counter dupli released by =====================================Thread %d ",omp_get_thread_num());
+   omp_unset_lock(&clock);
+   PRINT ("clock for counter dupli released by =====================================Thread %d ",omp_get_thread_num());
 
 //   PRINT ("trail size: %lu",t->size());
 //   if (verb_debug) pidmap.dump (true); // KO can dump pidmap
