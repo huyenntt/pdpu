@@ -113,6 +113,7 @@ void Cut::unionn (Event *e)
    unsigned pid, min;
    Event *ee;
 
+   PRINT ("J unionnnnnnnnnnnnnnnnnnnnnnnnnnn");
    ASSERT (e);
    ASSERT (e->pid() < nrp);
    ASSERT (!max[e->pid()] or max[e->pid()]->pid() == e->pid());
@@ -134,6 +135,7 @@ void Cut::unionn (Event *e)
             max[pid] = ee;
       }
    }
+   dump();
 }
 
 void Cut::dump () const

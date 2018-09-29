@@ -604,8 +604,11 @@ bool C15unfolder::stream_to_events
    // if this function creats new events, it is a new maximal configuration. Otherwise, it is not counted as MC.
    omp_set_lock(&clock);
    PRINT ("clock for counter dupli taken by ========================================Thread %d ",omp_get_thread_num());
-   if (events_new == events_old)
-          counters.dupli++;
+//   if (events_new == events_old)
+//   {
+//      counters.dupli++;
+//      PRINT ("This is a duplication");
+//   }
    omp_unset_lock(&clock);
    PRINT ("clock for counter dupli released by =====================================Thread %d ",omp_get_thread_num());
 

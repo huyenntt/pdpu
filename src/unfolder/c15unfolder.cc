@@ -30,7 +30,7 @@ C15unfolder::C15unfolder (Altalgo a, unsigned kbound, unsigned maxcts) :
    Unfolder (prepare_executor_config ()),
    report (),
    record_replays (true), // Huyen changed to true
-   replays (),
+//   replays (),
    timeout (0),
    altalgo (a),
    kpartial_bound (kbound),
@@ -38,6 +38,8 @@ C15unfolder::C15unfolder (Altalgo a, unsigned kbound, unsigned maxcts) :
    max_context_switches (maxcts)
 {
    std::string s;
+
+   replays.reserve(40000);
 
    if (altalgo == Altalgo::OPTIMAL)
       kpartial_bound = UINT_MAX;
@@ -172,13 +174,18 @@ bool C15unfolder:: rpl_existed (Replay rpl, std::vector<Replay> &rpl_list)
 {
 //   omp_set_lock(&rlock);
    for (auto &r : rpl_list)
+   {
+      PRINT ("r  : %s", r.str(0).c_str());
+      PRINT ("rpl: %s", rpl.str(0).c_str());
 //      if ( (rpl == r) or rpl.is_derived(r))
       if (rpl == r)
       {
-//       PRINT ("Replay already exists");
+         PRINT ("Replay already exists");
          return true;
       }
+   }
 //   omp_unset_lock(&rlock);
+//   PRINT ("Repla");
    return false;
 }
 
@@ -201,11 +208,12 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
    unfolder = _get_por_analysis(); // Chi doc thong tin c15unf -> ko can lock
 //   replay.build_from (tsk->trail, tsk->conf, tsk->add);
 //   PRINT ("replay: %s", replay.str().c_str());
-//   PRINT ("replay: %s", tsk->rep.str().c_str());
+
 
 //   unfolder->_set_replay_sleepset(replay, tsk->dis, tsk->add);
    unfolder->_set_replay_sleepset(tsk->rep, tsk->dis, tsk->add); // read infos from tsk and unf => don't need lock
    PRINT ("c15u: explore: call run from steroid===========================Thread %d ",omp_get_thread_num());
+   PRINT ("replay: %s", tsk->rep.str().c_str());
    unfolder->_exec->run();
 
    PRINT ("c15u: explore: finished call exec run==========================Thread %d ",omp_get_thread_num());
@@ -220,10 +228,10 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 
 //   omp_set_nest_lock(&biglock);
 
-   PRINT ("update counters===============================================Thread %d ",omp_get_thread_num());
+//   PRINT ("update counters===============================================Thread %d ",omp_get_thread_num());
 
    omp_set_lock(&clock);
-   PRINT ("clock for run taken by ========================================Thread %d ",omp_get_thread_num());
+//   PRINT ("clock for run taken by ========================================Thread %d ",omp_get_thread_num());
      counters.runs++;
 //     i = s.get_rt()->trace.num_ths;
 
@@ -232,7 +240,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //           counters.stid_threads = i;
 //     }
    omp_unset_lock(&clock);
-   PRINT ("clock for run released by =====================================Thread %d ",omp_get_thread_num());
+//   PRINT ("clock for run released by =====================================Thread %d ",omp_get_thread_num());
 
      PRINT ("c15u: explore: Stream to events:============================Thread %d ",omp_get_thread_num());
 //
@@ -242,7 +250,7 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
      int last_trail_size = tsk->trail.size();
 
        omp_set_lock(&ulock);
-       PRINT ("ulock taken by ========================================Thread %d ",omp_get_thread_num());
+//       PRINT ("ulock taken by ========================================Thread %d ",omp_get_thread_num());
 
 //     omp_set_lock(&ulock);
         b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec);
@@ -273,28 +281,39 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
 //       omp_unset_lock(&clock);
 //       PRINT ("clock for maxtrail released by =====================================Thread %d ",omp_get_thread_num());
 
-
          omp_unset_lock(&ulock);
-         PRINT ("ulock released by ========================================Thread %d ",omp_get_thread_num());
+//         PRINT ("ulock released by ========================================Thread %d ",omp_get_thread_num());
 
 
        // backtrack until the root to find all right subtrees to explore
        PRINT("c15u: explore: backtrack the trail =======================Thread %d ",omp_get_thread_num());
+//       int a = 10;
+//       while (a > 0)
+//       {
+//         ntsk = new Task(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
+//         #pragma omp task firstprivate(ntsk)
+//          {
+//             PRINT ("c15: explore: create a new task");
+//             explore_one_maxconfig(ntsk);
+//          }
+//          a--;
+//       }
 
 //       while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
 //       omp_set_lock(&ulock);
 //       PRINT ("ulock backtracking taken by =====================================Thread %d ",omp_get_thread_num());
 
-       omp_set_nest_lock(&biglock);
-       PRINT ("biglock taken by ========================================Thread %d ",omp_get_thread_num());
+//       omp_set_nest_lock(&biglock);
+//       PRINT ("biglock taken by ========================================Thread %d ",omp_get_thread_num());
 
-       while (tsk->trail.size() > 0) // Van phai xem lai tat ca cac event
+//       while (tsk->trail.size() > 0) // Van phai xem lai tat ca cac event
+       while (tsk->trail.size() > last_trail_size)
        {
           e = tsk->trail.pop ();
           // pop last event out of the trail/config; indicate so to the disset
-//          PRINT ("c15u: explore: %s: popping: i %2zu ncs %u %s",
-//                    explore_stat(tsk->trail,tsk->dis).c_str(), tsk->trail.size(), tsk->trail.nr_context_switches(),
-//                    e->str().c_str());
+          PRINT ("c15u: explore: %s: popping: i %2zu ncs %u %s",
+                    explore_stat(tsk->trail,tsk->dis).c_str(), tsk->trail.size(), tsk->trail.nr_context_switches(),
+                    e->str().c_str());
 
           tsk->conf.unfire (e);
           tsk->dis.trail_pop (tsk->trail.size ());
@@ -311,12 +330,6 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
              continue;
           }
 
-//          omp_set_lock(&clock);
-//          PRINT ("clock for alt call taken by ========================================Thread %d ",omp_get_thread_num());
-//             counters.alt.calls++;
-//          omp_unset_lock(&clock);
-//          PRINT ("clock for alt call released by =====================================Thread %d ",omp_get_thread_num());
-
           // check for alternatives
           if (! unfolder->might_find_alternative (tsk->conf, tsk->dis, e))
           {
@@ -325,76 +338,59 @@ void C15unfolder::explore_one_maxconfig (Task *tsk)
                continue;
           }
 
-//           PRINT ("c15: explore: trail.size %zu", tsk->trail.size());
           tsk->dis.add (e, tsk->trail.size());
-
-          // Doi j thanh tsk->add vi khi 1 alternative duoc tim thay, no se duoc luu trong j.
-//           Dung luon tsk->add de ko phai copy nua??
-
-//          omp_set_lock(&ulock);
 
           if (unfolder->find_alternative (tsk->trail, tsk->conf, tsk->dis, tsk->add, u))
           {
+//                PRINT ("find alt for: ");
+//                tsk->dis.dump();
+//                tsk->conf.dump();
+//                tsk->add.dump();
                 // Here we create a new task to explore new branch with the alternative found
                 PRINT ("c15u: explore: an alternative found");
                 replay.build_from (tsk->trail, tsk->conf, tsk->add);
 
                 omp_set_lock(&rlock);
-                PRINT ("rlock taken by ========================================Thread %d ",omp_get_thread_num());
-                   if (tsk->trail.size() <= last_trail_size)
-                   {
-                      if (rpl_existed (replay,replays))
-                      {
-   //                       PRINT ("c15u: explore: task already exists");
-                         omp_unset_lock(&rlock);
-                         PRINT ("rlock released by =====================================Thread %d ",omp_get_thread_num());
-                         continue;
-                      }
-
-                   } // end of if trail size
-
-                   replays.push_back(replay);
-                omp_unset_lock(&rlock);
-                PRINT ("rlock released by =====================================Thread %d ",omp_get_thread_num());
-
-
-                ntsk = new Task(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
-//                ntsk = new Task(tsk->dis, tsk->add, tsk->trail, tsk->conf);
-                // Can phai push task vao full_tasks o day
-//                tasks.push_back(*ntsk);
-
-//                omp_unset_lock(&biglock);
-//                omp_unset_lock(&ulock);
-
-                #pragma omp task firstprivate(ntsk)
+//                PRINT ("rlock taken by ========================================Thread %d ",omp_get_thread_num());
+                if (rpl_existed (replay, replays))
                 {
-                   explore_one_maxconfig(ntsk);
+//                   PRINT ("c15u: explore: task already exists");
+                   omp_unset_lock(&rlock);
+//                   PRINT ("rlock released by =====================================Thread %d ",omp_get_thread_num());
+                   continue;
                 }
+                else
+                {
+                   replays.push_back(replay);
+                   omp_unset_lock(&rlock);
+//                   PRINT ("rlock released by =====================================Thread %d ",omp_get_thread_num());
 
-//                omp_set_lock(&biglock);
-           } // end of if
 
-//          else
-//          {
-////             omp_unset_lock(&biglock);
-//             PRINT ("c15u: epxplore: no alt found");
-//          }
-//          omp_unset_lock(&ulock);
+                   ntsk = new Task(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
+
+                   #pragma omp task firstprivate(ntsk)
+                   {
+                      PRINT ("c15: explore: create a new task");
+                      explore_one_maxconfig(ntsk);
+                   }
+                }
+           } // end of if find_alter
 
           tsk->dis.unadd ();
 
        } // end of while trail
-       omp_unset_nest_lock(&biglock);
-       PRINT ("biglock released by ========================================Thread %d ",omp_get_thread_num());
 
-       PRINT ("c15u: explore: stop backtracking");
-       PRINT ("tsk->dis.ssb_count: %d",tsk->dis.ssb_count);
+//       omp_unset_nest_lock(&biglock);
+//       PRINT ("biglock released by ========================================Thread %d ",omp_get_thread_num());
+
+       PRINT ("c15u: explore: stop backtracking===============================");
+//       PRINT ("tsk->dis.ssb_count: %d",tsk->dis.ssb_count);
 
        omp_set_lock(&clock);
-       PRINT ("clock for ssb taken by ========================================Thread %d ",omp_get_thread_num());
+//       PRINT ("clock for ssb taken by ========================================Thread %d ",omp_get_thread_num());
           counters.ssbs += tsk->dis.ssb_count;
        omp_unset_lock(&clock);
-       PRINT ("clock for ssb released by =====================================Thread %d ",omp_get_thread_num());
+//       PRINT ("clock for ssb released by =====================================Thread %d ",omp_get_thread_num());
 
        PRINT ("c15: explore: finish one config  ==========================================Thread %d",omp_get_thread_num());
 
@@ -419,13 +415,13 @@ void C15unfolder::explore_para ()
    report_init (); // init report trong c15
    start_time = time (nullptr);
 
- //  omp_set_num_threads(1);
+   omp_set_num_threads(1);
 //   PRINT ("CORESSSS %u", opts::cores);
-   omp_set_num_threads(opts::cores);
+//    omp_set_num_threads(opts::cores);
 
    #pragma omp parallel firstprivate(tsk)
    {
-      #pragma omp single
+      #pragma omp single nowait
       {
 //         PRINT ("c15: explore: task outside the omp task");
 //         tsk->dump();
@@ -436,6 +432,7 @@ void C15unfolder::explore_para ()
       } // end of single
    } // end of parallel
 
+
    // statistics (all for c15unfolder)
    PRINT ("Number of duplicate: %lu", counters.dupli);
    counters.maxconfs = counters.runs - counters.ssbs - counters.dupli;
@@ -443,199 +440,210 @@ void C15unfolder::explore_para ()
    PRINT ("c15u: explore: done!");
    PRINT ("NUMBER OF SSBs: %lu", counters.ssbs);
    ASSERT (counters.ssbs == 0 or altalgo != Altalgo::OPTIMAL);
+
+   PRINT ("All replays found:");
+   for (int i=0; i < replays.size(); i++)
+      PRINT ("%s",replays[i].str(0).c_str());
 }
 ////===========================explore sequence=================================
-//void C15unfolder:: explore_seq()
-//{
-//   bool b;
-//   Trail t;
-//   Disset d;
-//   Config c (Unfolding::MAX_PROC);
-//   Cut j (Unfolding::MAX_PROC);
-//   Replay replay (u);
-//   Event *e = nullptr;
-//   int i = 0;
-//   time_t start_time;
-//   std::unique_ptr<Tunfolder> unfolder;
-//
-//   Task *tsk;
-//   std::queue<Task> tasks;
-//
-//   std::vector<Task> full_tasks;
-//   std::vector<Replay> rpl_list;
-//
-////   Task *ntsk;
-//
-//   start_time = time (nullptr);
-//
-////   PRINT ("c15: explore: Replay at the beginning: %s", replay.str().c_str());
-//   // initialize the defect report now that all settings for this verification
-//   // exploration are fixed
-//   report_init (); // init report trong c15
-//
-//   int tcount = 1;
-//   PRINT ("c15: explore: initialize the queue");
-////   tasks.emplace(d, j, t, c); // first task with all empty, // J inlucdes C, so C is unnecessary
-//   tasks.emplace(replay, d, j, t, c);
+void C15unfolder:: explore_seq()
+{
+   bool b;
+   Trail t;
+   Disset d;
+   Config c (Unfolding::MAX_PROC);
+   Cut j (Unfolding::MAX_PROC);
+   Replay replay (u);
+   Event *e = nullptr;
+   int i = 0;
+   time_t start_time;
+   std::unique_ptr<Tunfolder> unfolder;
+
+   Task *tsk;
+   std::queue<Task> tasks;
+
+   std::vector<Task> full_tasks;
+   std::vector<Replay> rpl_list;
+
+//   Task *ntsk;
+
+   start_time = time (nullptr);
+
+//   PRINT ("c15: explore: Replay at the beginning: %s", replay.str().c_str());
+   // initialize the defect report now that all settings for this verification
+   // exploration are fixed
+   report_init (); // init report trong c15
+
+   int tcount = 1;
+   PRINT ("c15: explore: initialize the queue");
+//   tasks.emplace(d, j, t, c); // first task with all empty, // J inlucdes C, so C is unnecessary
+   tasks.emplace(replay, d, j, t, c);
 //   full_tasks.emplace_back(replay, d, j, t, c);
-////   rpl_list.push_back(replay); // forget the first replay
-//
-//   while (!tasks.empty())
-//   {
-//      PRINT ("c15: explore: POP A NEW TASK FROM QUEUE");
-//      ASSERT (!tasks.empty());
-//      tsk = new Task(std::move(tasks.front()));
-//      tasks.pop();
-//      tsk->dump();
-//
-//      PRINT ("c15::explore:: tasks.size: %lu", tasks.size());
-//
-//      PRINT ("c15::explore: call get_por_analysis for tunfolder");
-//      unfolder = _get_por_analysis();
-////      replay.build_from (tsk->trail, tsk->conf, tsk->add);
-////      PRINT ("replay: %s", replay.str().c_str());
-//
-//      unfolder->_set_replay_sleepset(tsk->rep, tsk->dis, tsk->add); // Cho nay chua the hien add
-//
-//      PRINT ("c15: explore: call run from steroids");
-//      unfolder->_exec->run();
-//
-//      // if requested, record the replay sequence
-//      if (record_replays) replays.push_back (replay);
-//
-//      // Get a trace from stream
-//      stid::action_streamt s (unfolder->_exec->get_trace ());
-//
-//      counters.runs++;
-//      i = s.get_rt()->trace.num_ths;
-//      if (counters.stid_threads < i) counters.stid_threads = i;
-//
-////      s.print ();
-////      tsk->trail.dump();
-//      PRINT ("c15u: explore: Stream to events:");
-//
-//      /*
-//       * We need to store old trail here, or just top_idx of trail to avoid backtracking the events which are
-//       * considered for alternatives before.
-//       */
-////      Event * last_old_trail = tsk->trail.empty() ? nullptr : tsk->trail.peek();
-//      int last_trail_size = tsk->trail.size();
-//
-////      if (last_old_trail)
-////         PRINT ("last_old_trail: %s", last_old_trail->str().c_str());
-////      else
-////         PRINT ("empty trail-> last evt is bottom");
-//
-//       b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec);
-//
-//       // b could be false because of SSBs or defects
-////        PRINT ("c15u: explore: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-////        #ifdef VERB_LEVEL_TRACE
-////           if (verb_trace)
-////              tsk->trail.dump2 (fmt ("c15u: explore: %s: ", explore_stat(tsk->trail,tsk->dis).c_str()).c_str());
-////           if (verb_debug) tsk->conf.dump ();
-////           if (verb_debug) tsk->dis.dump ();
-////        #endif
-//
-//        // add conflicting extensions
-//        PRINT ("c15: explore: compute cex");
-//        compute_cex (tsk->conf, &e);  // Truy cap den unfolding cuar C15unfolder, lock se dung ben trong ham
-//
-//
-//        counters.avg_max_trail_size += tsk->trail.size(); //???
-//
-//        // backtrack until we find some right subtree to explore
-////        DEBUG ("");
-//        PRINT("c15: explore: backtrach the trail============================");
-//
-//        PRINT ("c15: explore: old trail size: %d trail size: %zu", last_trail_size, tsk->trail.size());
-//
-//        tsk->dis.dump();
-//
-////        while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
+   rpl_list.push_back(replay); // forget the first replay
+
+   while (!tasks.empty())
+   {
+      PRINT ("c15: explore: POP A NEW TASK FROM QUEUE");
+      ASSERT (!tasks.empty());
+      tsk = new Task(std::move(tasks.front()));
+      tasks.pop();
+      tsk->dump();
+
+      PRINT ("c15::explore:: tasks.size: %lu", tasks.size());
+
+      PRINT ("c15::explore: call get_por_analysis for tunfolder");
+      unfolder = _get_por_analysis();
+//      replay.build_from (tsk->trail, tsk->conf, tsk->add);
+//      PRINT ("replay: %s", replay.str().c_str());
+
+      unfolder->_set_replay_sleepset(tsk->rep, tsk->dis, tsk->add); // Cho nay chua the hien add
+
+      PRINT ("c15: explore: call run from steroids");
+      unfolder->_exec->run();
+
+      // if requested, record the replay sequence
+      if (record_replays) replays.push_back (replay);
+
+      // Get a trace from stream
+      stid::action_streamt s (unfolder->_exec->get_trace ());
+
+      counters.runs++;
+      i = s.get_rt()->trace.num_ths;
+      if (counters.stid_threads < i) counters.stid_threads = i;
+
+//      s.print ();
+//      tsk->trail.dump();
+      PRINT ("c15u: explore: Stream to events:");
+
+      /*
+       * We need to store old trail here, or just top_idx of trail to avoid backtracking the events which are
+       * considered for alternatives before.
+       */
+//      Event * last_old_trail = tsk->trail.empty() ? nullptr : tsk->trail.peek();
+      int last_trail_size = tsk->trail.size();
+
+//      if (last_old_trail)
+//         PRINT ("last_old_trail: %s", last_old_trail->str().c_str());
+//      else
+//         PRINT ("empty trail-> last evt is bottom");
+
+       b = stream_to_events (tsk->conf, s, &tsk->trail, &tsk->dis, unfolder->_exec);
+
+       // b could be false because of SSBs or defects
+//        PRINT ("c15u: explore: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+//        #ifdef VERB_LEVEL_TRACE
+//           if (verb_trace)
+//              tsk->trail.dump2 (fmt ("c15u: explore: %s: ", explore_stat(tsk->trail,tsk->dis).c_str()).c_str());
+//           if (verb_debug) tsk->conf.dump ();
+//           if (verb_debug) tsk->dis.dump ();
+//        #endif
+
+        // add conflicting extensions
+        PRINT ("c15: explore: compute cex");
+        compute_cex (tsk->conf, &e);  // Truy cap den unfolding cuar C15unfolder, lock se dung ben trong ham
+
+
+        counters.avg_max_trail_size += tsk->trail.size(); //???
+
+        // backtrack until we find some right subtree to explore
+//        DEBUG ("");
+        PRINT("c15: explore: backtrach the trail============================");
+
+        PRINT ("c15: explore: old trail size: %d trail size: %zu", last_trail_size, tsk->trail.size());
+
+        tsk->dis.dump();
+
+        while (tsk->trail.size() > last_trail_size) // Ko xet lai event da tim thay alternative o luc truoc, last event in old trail
 //        while (tsk->trail.size() > 0)
-//        {
-//           e = tsk->trail.pop ();
-//              // pop last event out of the trail/config; indicate so to the disset
-//           PRINT ("c15u: explore: %s: popping: i %2zu ncs %u %s",
-//                     explore_stat(tsk->trail,tsk->dis).c_str(), tsk->trail.size(), tsk->trail.nr_context_switches(),
-//                     e->str().c_str());
-//
-//           tsk->conf.unfire (e);
-//
-//           tsk->dis.trail_pop (tsk->trail.size ()); // Hàm này dùng flags.ind!!! Ma ham nay de lam gi quen roi
-//
-//           // skip searching for alternatives if we exceed the number of allowed
-//           // context switches
-//           if (tsk->trail.nr_context_switches() >= max_context_switches)
-//              PRINT ("c15u: explore: %s: continue", explore_stat(tsk->trail,tsk->dis).c_str());
-//           if (tsk->trail.nr_context_switches() >= max_context_switches) continue;
-//
-//           // check for alternatives
-//           counters.alt.calls++;
-//           if (! unfolder->might_find_alternative (tsk->conf, tsk->dis, e))
-//           {
-//              PRINT ("c15u: epxplore: no possiblility to get an alternative");
-//                 continue;
-//           }
-//
-////           PRINT ("c15: explore: trail.size %zu", tsk->trail.size());
-//           tsk->dis.add (e, tsk->trail.size());
-//
-//
-//           if (unfolder->find_alternative (tsk->trail, tsk->conf, tsk->dis, tsk->add, u))
-//           {
-//                 // Here we create a new task to explore new branch with the alternative found
-//                 PRINT ("c15u: explore: an alternative found");
-//                 replay.build_from (tsk->trail, tsk->conf, tsk->add);
-////                    if (existed(ntsk,full_tasks))
-//                 if (rpl_existed (replay,rpl_list))
-//                 {
-//                    PRINT ("c15u: explore: task already exists");
-//                    continue;
-//                 }
-////                 ntsk = new Task (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
-////                 tasks.push(std::move(*ntsk));
-////                 PRINT("New task after tasks.push");
-////                 ntsk->dump(); // move chua gan ntsk ve null het
-////                 full_tasks.push_back(std::move(*ntsk));
-////                 full_tasks.emplace_back(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
-////                 tasks.emplace (tsk->dis, tsk->add, tsk->trail, tsk->conf);
-//
-//                 tasks.emplace (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
-//                 rpl_list.push_back(replay);
-//                 tcount++;
-//                 PRINT ("c15u: explore: new task inserted in tasks");
-////                 tasks.back().dump();
-//            } // end of if
-//           else
-//              PRINT ("c15u: epxplore: no alt found");
-//
-//           tsk->dis.unadd (); // Chi co duy nhat 1 event cuoi cung tro ve 0.
-//
-//           if (counters.runs % 10 == 0 and timeout)
-//              if (time(nullptr) - start_time > timeout)
-//              {
-//                  counters.timeout = true;
-//                  break;
-//              }
-//        } // end of while trail
-//
-//       PRINT ("c15u: explore: stop backtracking==========================");
-//
-//       counters.ssbs += tsk->dis.ssb_count;
-//   } // End of while tasks
-//   // statistics (all for c15unfolder) - Minh can xem lai cho tong ket thong tin 1 chut
-//
-//   PRINT ("c15u: all the replays");
-//   for (int i = 0; i < rpl_list.size(); i++)
-//      PRINT ("%s", rpl_list[i].str().c_str());
-//
-//   counters.maxconfs = counters.runs - counters.ssbs - counters.dupli;
-//   counters.avg_max_trail_size /= counters.runs;
-//   PRINT ("c15u: explore: done!, number of tasks: %d",tcount);
-//   ASSERT (counters.ssbs == 0 or altalgo != Altalgo::OPTIMAL); // Xem lai cho nay
-//}
+        {
+           e = tsk->trail.pop ();
+              // pop last event out of the trail/config; indicate so to the disset
+           PRINT ("c15u: explore: %s: popping: i %2zu ncs %u %s",
+                     explore_stat(tsk->trail,tsk->dis).c_str(), tsk->trail.size(), tsk->trail.nr_context_switches(),
+                     e->str().c_str());
+
+           tsk->conf.unfire (e);
+
+           tsk->dis.trail_pop (tsk->trail.size ()); // Hàm này dùng flags.ind!!! Ma ham nay de lam gi quen roi
+
+           // skip searching for alternatives if we exceed the number of allowed
+           // context switches
+           if (tsk->trail.nr_context_switches() >= max_context_switches)
+              PRINT ("c15u: explore: %s: continue", explore_stat(tsk->trail,tsk->dis).c_str());
+           if (tsk->trail.nr_context_switches() >= max_context_switches) continue;
+
+           // check for alternatives
+           counters.alt.calls++;
+           if (! unfolder->might_find_alternative (tsk->conf, tsk->dis, e))
+           {
+              PRINT ("c15u: epxplore: no possiblility to get an alternative");
+                 continue;
+           }
+
+//           PRINT ("c15: explore: trail.size %zu", tsk->trail.size());
+           tsk->dis.add (e, tsk->trail.size());
+
+//           tsk->dis.dump();
+//           tsk->conf.dump();
+//           tsk->add.dump();
+
+           if (unfolder->find_alternative (tsk->trail, tsk->conf, tsk->dis, tsk->add, u))
+           {
+                 // Here we create a new task to explore new branch with the alternative found
+                 PRINT ("c15u: explore: an alternative found");
+                 tsk->dis.dump();
+                 tsk->conf.dump();
+                 tsk->add.dump();
+
+                 replay.build_from (tsk->trail, tsk->conf, tsk->add);
+//                    if (existed(ntsk,full_tasks))
+                 if (rpl_existed (replay,rpl_list))
+                 {
+                    PRINT ("c15u: explore: task already exists");
+                    continue;
+                 }
+//                 ntsk = new Task (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
+//                 tasks.push(std::move(*ntsk));
+//                 PRINT("New task after tasks.push");
+//                 ntsk->dump(); // move chua gan ntsk ve null het
+//                 full_tasks.push_back(std::move(*ntsk));
+//                 full_tasks.emplace_back(replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
+//                 tasks.emplace (tsk->dis, tsk->add, tsk->trail, tsk->conf);
+
+                 tasks.emplace (replay, tsk->dis, tsk->add, tsk->trail, tsk->conf);
+                 rpl_list.push_back(replay);
+                 tcount++;
+                 PRINT ("c15u: explore: new task inserted in tasks");
+//                 tasks.back().dump();
+            } // end of if
+           else
+              PRINT ("c15u: epxplore: no alt found");
+
+           tsk->dis.unadd (); // Chi co duy nhat 1 event cuoi cung tro ve 0.
+
+           if (counters.runs % 10 == 0 and timeout)
+              if (time(nullptr) - start_time > timeout)
+              {
+                  counters.timeout = true;
+                  break;
+              }
+        } // end of while trail
+
+       PRINT ("c15u: explore: stop backtracking==========================");
+
+       counters.ssbs += tsk->dis.ssb_count;
+   } // End of while tasks
+   // statistics (all for c15unfolder) - Minh can xem lai cho tong ket thong tin 1 chut
+
+   PRINT ("c15u: all the replays");
+   for (int i = 0; i < rpl_list.size(); i++)
+      PRINT ("%s", rpl_list[i].str().c_str());
+
+   counters.maxconfs = counters.runs - counters.ssbs - counters.dupli;
+   counters.avg_max_trail_size /= counters.runs;
+   PRINT ("c15u: explore: done!, number of tasks: %d",tcount);
+   ASSERT (counters.ssbs == 0 or altalgo != Altalgo::OPTIMAL); // Xem lai cho nay
+}
 
 //void C15unfolder::explore_origin ()
 //{
@@ -810,7 +818,7 @@ void C15unfolder::compute_cex_lock (Event *e, Event **head)
 //      omp_unset_lock(&ulock);
 //      PRINT ("ulock released by =====================================Thread %d ",omp_get_thread_num());
 
-//      PRINT ("c15u: cex-lock:  new cex: %s", ee->str().c_str());
+      PRINT ("c15u: cex-lock:  new cex: %s", ee->str().c_str());
 
       // we add it to the linked-list
       ee->next = *head; // next is also used in cut_to_replay

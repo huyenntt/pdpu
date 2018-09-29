@@ -431,9 +431,9 @@ bool Tunfolder::find_alternative (const Trail &t, Config &c, const Disset &d, Cu
    }
 
    TRACE_ ("c15u: explore: %s: alt: [", _explore_stat (t, d).c_str());
-#ifdef VERB_LEVEL_TRACE
-   if (verb_trace)
-   {
+//#ifdef VERB_LEVEL_TRACE
+//   if (verb_trace)
+//   {
       std::vector<Event*> v;
       for (auto e : d.unjustified)
       {
@@ -441,10 +441,13 @@ bool Tunfolder::find_alternative (const Trail &t, Config &c, const Disset &d, Cu
          TRACE_("%zu ", v.size());
          v.clear();
       }
-   }
-#endif
+//   }
+//#endif
    TRACE ("\b] %s", b ? "found" : "no");
-   if (b) DEBUG ("c15u: explore: %s: j: %s", _explore_stat(t, d).c_str(), j.str().c_str());
+//   if (b) DEBUG ("c15u: explore: %s: j: %s", _explore_stat(t, d).c_str(), j.str().c_str());
+
+     if (b) PRINT ("c15u: explore: %s: j: %s", _explore_stat(t, d).c_str(), j.str().c_str());
+
    return b;
 }
 
@@ -482,21 +485,25 @@ bool Tunfolder::find_alternative_only_last (const Config &c, const Disset &d, Cu
    // scan the spike of that guy, we use 1 spike in the comb
    comb.clear();
    comb.add_spike (e);
+   PRINT ("comb: %s",comb.str().c_str());
 #ifdef CONFIG_STATS_DETAILED
 //   counters.alt.spikesizeunfilt.sample (comb[0].size());
 #endif
    b = false;
    for (Event *ee : comb[0])
    {
-#ifdef CONFIG_STATS_DETAILED
-      count++;
-#endif
+      #ifdef CONFIG_STATS_DETAILED
+            count++;
+      #endif
 
 //      if (!ee->flags.ind and !ee->in_cfl_with (c) and !d.intersects_with (ee))
       if ( !d.inD (ee) and !ee->in_cfl_with (c) and !d.intersects_with (ee))
       {
          j = c;
+         PRINT("J============================C================================");
+         j.dump();
          j.unionn (ee);
+
          b = true;
          break;
       }
